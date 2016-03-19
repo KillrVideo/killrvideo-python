@@ -39,6 +39,7 @@ message GetUserCommentsRequest {
 message GetUserCommentsResponse {
   Uuid user_id = 1;
   repeated UserComment comments = 2;
+  string paging_state = 3;
 }
 
 // A comment made by a user
@@ -60,6 +61,7 @@ message GetVideoCommentsRequest {
 message GetVideoCommentsResponse {
   Uuid video_id = 1;
   repeated VideoComment comments = 2;
+  string paging_state = 3;
 }
 
 // A comment on a video
