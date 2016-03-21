@@ -6,15 +6,15 @@ import "common/common_types.proto";
 
 // Event published when uploaded video has been accepted by the catalog, but isn't ready for playback yet
 message UploadedVideoAccepted {
-  Uuid video_id = 1;
+  killrvideo.common.Uuid video_id = 1;
   string upload_url = 2;
   google.protobuf.Timestamp timestamp = 3;
 }
 
 // Event published when an uploaded video has been added to the catalog and is ready for playback
 message UploadedVideoAdded {
-  Uuid video_id = 1;
-  Uuid user_id = 2;
+  killrvideo.common.Uuid video_id = 1;
+  killrvideo.common.Uuid user_id = 2;
   string name = 3;
   string description = 4;
   string location = 5;
@@ -26,8 +26,8 @@ message UploadedVideoAdded {
 
 // Event published when a YouTube video has been added to the catalog and is ready for playback
 message YouTubeVideoAdded {
-  Uuid video_id = 1;
-  Uuid user_id = 2;
+  killrvideo.common.Uuid video_id = 1;
+  killrvideo.common.Uuid user_id = 2;
   string name = 3;
   string description = 4;
   string location = 5;

@@ -37,7 +37,7 @@ message MarkUploadCompleteResponse {
 
 // Get the current status of an uploaded video
 message GetStatusOfVideoRequest {
-  Uuid video_id = 1;
+  killrvideo.common.Uuid video_id = 1;
 }
 
 // Response with the current status of an uploaded video

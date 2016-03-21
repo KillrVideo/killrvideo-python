@@ -7,8 +7,8 @@ import "common/common_types.proto";
 
 // Message published when a user commented on a video
 message UserCommentedOnVideo {
-  Uuid user_id = 1;
-  Uuid video_id = 2;
-  TimeUuid comment_id = 3;
+  killrvideo.common.Uuid user_id = 1;
+  killrvideo.common.Uuid video_id = 2;
+  killrvideo.common.TimeUuid comment_id = 3;
   google.protobuf.Timestamp comment_timestamp = 4;
 }
