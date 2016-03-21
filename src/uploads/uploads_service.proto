@@ -1,5 +1,7 @@
 syntax = "proto3";
+
 package killrvideo.uploads;
+option csharp_namespace = "KillrVideo.Uploads";
 
 import "google/protobuf/timestamp.proto";
 import "common/common_types.proto";

@@ -1,5 +1,7 @@
 syntax = "proto3";
+
 package killrvideo.video_catalog.events;
+option csharp_namespace = "KillrVideo.VideoCatalog.Events";
 
 import "google/protobuf/timestamp.proto";
 import "common/common_types.proto";

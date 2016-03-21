@@ -1,5 +1,7 @@
 syntax = "proto3";
+
 package killrvideo.user_management;
+option csharp_namespace = "KillrVideo.UserManagement";
 
 import "common/common_types.proto";
 

@@ -1,5 +1,7 @@
 syntax = "proto3";
+
 package killrvideo.search;
+option csharp_namespace = "KillrVideo.Search";
 
 import "google/protobuf/timestamp.proto";
 import "common/common_types.proto";

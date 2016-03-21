@@ -1,5 +1,7 @@
 syntax = "proto3";
+
 package killrvideo.comments;
+option csharp_namespace = "KillrVideo.Comments";
 
 import "google/protobuf/timestamp.proto";
 import "common/common_types.proto";

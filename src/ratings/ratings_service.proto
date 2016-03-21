@@ -1,5 +1,7 @@
 syntax = "proto3";
+
 package killrvideo.ratings;
+option csharp_namespace = "KillrVideo.Ratings";
 
 import "common/common_types.proto";
 

@@ -1,5 +1,7 @@
 syntax = "proto3";
+
 package killrvideo.suggested_videos;
+option csharp_namespace = "KillrVideo.SuggestedVideos";
 
 import "google/protobuf/timestamp.proto";
 import "common/common_types.proto";
