@@ -1,5 +1,5 @@
 syntax = "proto3";
-package killrvideo.sample_data.service;
+package killrvideo.sample_data;
 
 // Service for managing sample data on the site
 service SampleDataService {

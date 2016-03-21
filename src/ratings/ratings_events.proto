@@ -1,5 +1,5 @@
 syntax = "proto3";
-package killrvideo.ratings.service;
+package killrvideo.ratings.events;
 
 import "common/common_types.proto";
 import "google/protobuf/timestamp.proto";

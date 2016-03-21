@@ -1,5 +1,5 @@
 syntax = "proto3";
-package killrvideo.comments.service;
+package killrvideo.comments;
 
 import "google/protobuf/timestamp.proto";
 import "common/common_types.proto";

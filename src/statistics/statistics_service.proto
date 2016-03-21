@@ -1,5 +1,5 @@
 syntax = "proto3";
-package killrvideo.statistics.service;
+package killrvideo.statistics;
 
 import "common/common_types.proto";
 

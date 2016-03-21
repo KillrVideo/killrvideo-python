@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package killrvideo.common;
+
 // Represents a v4 UUID/GUID
 message Uuid {
   // Use string for simplicity sake since most programming languages provide a way

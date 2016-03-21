@@ -1,5 +1,5 @@
 syntax = "proto3";
-package killrvideo.search.service;
+package killrvideo.search;
 
 import "google/protobuf/timestamp.proto";
 import "common/common_types.proto";
