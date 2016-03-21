@@ -47,7 +47,7 @@ message UserComment {
   TimeUuid comment_id = 1;
   Uuid video_id = 2;
   string comment = 3;
-  Timestamp comment_timestamp = 4;
+  google.protobuf.Timestamp comment_timestamp = 4;
 }
 
 // Request for getting a page of comments on a video
@@ -69,5 +69,5 @@ message VideoComment {
   TimeUuid comment_id = 1;
   Uuid user_id = 2;
   string comment = 3;
-  Timestamp comment_timestamp = 4;
+  google.protobuf.Timestamp comment_timestamp = 4;
 }

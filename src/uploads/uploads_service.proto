@@ -42,6 +42,6 @@ message GetStatusOfVideoRequest {
 
 // Response with the current status of an uploaded video
 message GetStatusOfVideoResponse {
-  Timestamp status_date = 1;
+  google.protobuf.Timestamp status_date = 1;
   string current_state = 2;
 }

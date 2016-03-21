@@ -9,5 +9,5 @@ message UserRatedVideo {
   Uuid video_id = 1;
   Uuid user_id = 2;
   int32 rating = 3;
-  Timestamp rating_timestamp = 4;
+  google.protobuf.Timestamp rating_timestamp = 4;
 }

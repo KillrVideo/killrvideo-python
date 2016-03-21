@@ -8,7 +8,7 @@ import "common/common_types.proto";
 message UploadedVideoAccepted {
   Uuid video_id = 1;
   string upload_url = 2;
-  Timestamp timestamp = 3;
+  google.protobuf.Timestamp timestamp = 3;
 }
 
 // Event published when an uploaded video has been added to the catalog and is ready for playback
@@ -20,8 +20,8 @@ message UploadedVideoAdded {
   string location = 5;
   string preview_image_location = 6;
   repeated string tags = 7;
-  Timestamp added_date = 8;
-  Timestamp timestamp = 9;
+  google.protobuf.Timestamp added_date = 8;
+  google.protobuf.Timestamp timestamp = 9;
 }
 
 // Event published when a YouTube video has been added to the catalog and is ready for playback
@@ -33,6 +33,6 @@ message YouTubeVideoAdded {
   string location = 5;
   string preview_image_location = 6;
   repeated string tags = 7;
-  Timestamp added_date = 8;
-  Timestamp timestamp = 9;
+  google.protobuf.Timestamp added_date = 8;
+  google.protobuf.Timestamp timestamp = 9;
 }

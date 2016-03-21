@@ -67,7 +67,7 @@ message GetVideoResponse {
   string location = 5;
   VideoLocationType location_type = 6;
   repeated string tags = 7;
-  Timestamp added_date = 8;
+  google.protobuf.Timestamp added_date = 8;
 }
 
 // Enum representing what kind of video location is present for a video
@@ -89,7 +89,7 @@ message GetVideoPreviewsResponse {
 // A video preview (i.e. limited details about a video)
 message VideoPreview {
   Uuid video_id = 1;
-  Timestamp added_date = 2;
+  google.protobuf.Timestamp added_date = 2;
   string name = 3;
   string preview_image_location = 4;
   Uuid user_id = 5;

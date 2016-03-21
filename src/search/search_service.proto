@@ -30,7 +30,7 @@ message SearchVideosResponse {
 // A video preview returned in search results
 message SearchResultsVideoPreview {
   Uuid video_id = 1;
-  Timestamp added_date = 2;
+  google.protobuf.Timestamp added_date = 2;
   string name = 3;
   string preview_image_location = 4;
   Uuid user_id = 5;

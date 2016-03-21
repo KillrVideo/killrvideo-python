@@ -9,5 +9,5 @@ message UserCommentedOnVideo {
   Uuid user_id = 1;
   Uuid video_id = 2;
   TimeUuid comment_id = 3;
-  Timestamp comment_timestamp = 4;
+  google.protobuf.Timestamp comment_timestamp = 4;
 }

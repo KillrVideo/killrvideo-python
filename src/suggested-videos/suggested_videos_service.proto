@@ -1,6 +1,7 @@
 syntax = "proto3";
 package killrvideo.suggested_videos.service;
 
+import "google/protobuf/timestamp.proto";
 import "common/common_types.proto";
 
 // Service responsible for generating video suggestions
@@ -43,7 +44,7 @@ message GetSuggestedForUserResponse {
 // Video preview data for a video returned as a video suggestion
 message SuggestedVideoPreview {
   Uuid video_id = 1;
-  Timestamp added_date = 2;
+  google.protobuf.Timestamp added_date = 2;
   string name = 3;
   string preview_image_location = 4;
   Uuid user_id = 5;
