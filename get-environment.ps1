@@ -1,17 +1,9 @@
 <#
     .DESCRIPTION
-    Sets up the environment variables needed to run the Killrvideo docker-compose commands.
-    
-    .PARAMETER Force
-    Force the setup script to run even if it detects that the envirnonment variables are
-    already setup. False by default.
+    Gets the environment variables needed to run the Killrvideo docker-compose commands.
 #>
 [CmdletBinding()]
-Param (
-    [parameter(Mandatory=$false)]
-    [switch]
-    $Force
-)
+Param ()
 
 # Custom type representing the type of docker installation
 Add-Type -TypeDefinition "public enum DockerType { Windows, Toolbox }"
@@ -149,23 +141,9 @@ function Get-HostIp {
     throw "Could not find a host IP address on same network as $VirtualMachineIPAddress"
 }
 
-# See if we've already setup the environment previously
-$scriptPath = Split-Path -parent $PSCommandPath
-$envFilePath = "$scriptPath\killrvideo.env" 
-if ((Test-Path $envFilePath) -and ($Force -eq $false)) {
-    Write-Host 'Environment is already setup'
-    return
-}
-
-
 # Figure out the network setup
 $dockerVmIp = Get-DockerVirtualMachineIp
 $hostIp = Get-HostIp $dockerVmIp
 
-# Write to environment file
-$dockerEnv = @("KILLRVIDEO_HOST_IP=$hostIp", "KILLRVIDEO_DOCKER_IP=$dockerVmIp")
-
-# We have to use .NET to do this so it gets written as UTF-8 without the BOM
-$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-[System.IO.File]::WriteAllLines($envFilePath, $dockerEnv, $Utf8NoBom)
-Write-Host "Environment file written to $envFilePath"
+Write-Output "KILLRVIDEO_HOST_IP=$hostIp"
+Write-Output "KILLRVIDEO_DOCKER_IP=$dockerVmIp"
