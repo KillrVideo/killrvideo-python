@@ -29,5 +29,7 @@ services:
     - "9042:9042"
     cap_add:
     - IPC_LOCK
+    ulimits:
+      memlock: -1
     environment:
       SERVICE_9042_NAME: cassandra
