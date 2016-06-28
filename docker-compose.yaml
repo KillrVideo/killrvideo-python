@@ -27,5 +27,7 @@ services:
     image: luketillman/datastax-enterprise:4.8.7
     ports:
     - "9042:9042"
+    cap_add:
+    - IPC_LOCK
     environment:
       SERVICE_9042_NAME: cassandra
