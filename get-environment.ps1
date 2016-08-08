@@ -25,7 +25,7 @@ if ($isToolbox) {
 # Determine the Docker VM's IP address
 Write-Host 'Getting Docker VM IP'
 $dockerIpCmd = 'ip -4 addr show scope global dev eth0 | grep inet | awk ''{print $2}'' | cut -d / -f 1'
-& docker run --rm --net=host busybox /bin/sh -c $dockerIpCmd 2>&1 | Tee-Object -Variable dockerIp | Out-Null
+& docker run --rm --net=host busybox bin/sh -c $dockerIpCmd 2>&1 | Tee-Object -Variable dockerIp | Out-Null
 if ($LastExitCode -ne 0) {
     Write-Host "Could not get Docker VM IP"
     throw $dockerIp
@@ -35,7 +35,7 @@ Write-Verbose " => Got Docker IP: $dockerIp"
 # Determine the VM host's IP address
 Write-Host 'Getting Docker VM Host IP'
 $hostIpCmd = 'ip -4 route list dev eth0 0/0 | cut -d '' '' -f 3'
-& docker run --rm --net=host busybox /bin/sh -c $hostIpCmd 2>&1 | Tee-Object -Variable hostIp | Out-Null
+& docker run --rm --net=host busybox bin/sh -c $hostIpCmd 2>&1 | Tee-Object -Variable hostIp | Out-Null
 if ($LastExitCode -ne 0) {
     Write-Host "Could not get Docker VM Host IP"
     throw $hostIp
