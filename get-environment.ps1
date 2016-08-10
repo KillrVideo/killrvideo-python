@@ -17,28 +17,42 @@ if ($Env:DOCKER_TOOLBOX_INSTALL_PATH) {
 
 Write-Verbose " => Is Docker Toolbox: $isToolbox"
 
-# TODO: Setup to ensure we have docker machine variables
+# Do things differently for Toolbox vs Docker for Windows
 if ($isToolbox) {
+    # See if the docker VM is running
+    & docker-machine status default | Tee-Object -Variable dockerMachineStatus | Out-Null
+    if ($dockerMachineStatus -ne 'Running') {
+        & docker-machine start default | Out-Null
+    }
 
+    # Add environment to this shell
+    & docker-machine env | Invoke-Expression
 }
 
 # Determine the Docker VM's IP address
 Write-Host 'Getting Docker VM IP'
-$dockerIpCmd = 'ip -4 addr show scope global dev eth0 | grep inet | awk ''{print $2}'' | cut -d / -f 1'
-& docker run --rm --net=host busybox bin/sh -c $dockerIpCmd 2>&1 | Tee-Object -Variable dockerIp | Out-Null
-if ($LastExitCode -ne 0) {
-    Write-Host "Could not get Docker VM IP"
-    throw $dockerIp
+if ($isToolbox) {
+    # Just use the command that comes with docker-machine
+    & docker-machine ip | Tee-Object -Variable dockerIp | Out-Null
+} else {
+    # The VM's IP should be the IP address for eth0 when running a container in host networking mode
+    $dockerIpCmd = "ip -4 addr show scope global dev eth0 | grep inet | awk `'{print `$2}`' | cut -d / -f 1"
+    & docker run --rm --net=host busybox bin/sh -c $dockerIpCmd | Tee-Object -Variable dockerIp | Out-Null
 }
 Write-Verbose " => Got Docker IP: $dockerIp"
 
 # Determine the VM host's IP address
-Write-Host 'Getting Docker VM Host IP'
-$hostIpCmd = 'ip -4 route list dev eth0 0/0 | cut -d '' '' -f 3'
-& docker run --rm --net=host busybox bin/sh -c $hostIpCmd 2>&1 | Tee-Object -Variable hostIp | Out-Null
-if ($LastExitCode -ne 0) {
-    Write-Host "Could not get Docker VM Host IP"
-    throw $hostIp
+Write-Host 'Getting corresponding local machine IP'
+if ($isToolbox) {
+    # The host only CIDR address will contain the host's IP (along with a suffix like /24)
+    & docker-machine inspect --format '{{ .Driver.HostOnlyCIDR }}' default |
+        Tee-Object -Variable hostCidr |
+        Out-Null
+    $hostIp = $hostCidr -replace "\/\d{2}", ""
+} else {
+    # The host's IP should be the default route for eth0 when running a container in host networking mode
+    $hostIpCmd = "ip -4 route list dev eth0 0/0 | cut -d `' `' -f 3"
+    & docker run --rm --net=host busybox bin/sh -c $hostIpCmd | Tee-Object -Variable hostIp | Out-Null
 }
 Write-Verbose " => Got Host IP: $hostIp"
 
