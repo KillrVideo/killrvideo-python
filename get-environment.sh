@@ -2,6 +2,10 @@
 
 set -e  # Bail if something fails
 
+# This script will try and detect a user's docker setup and write some environment
+# variable pairs to stdout. The stdout output from this script can then be used to,
+# for example, create a .env file for use with docker-compose 
+
 # TODO: Determine if a Docker Toolbox setup
 IS_TOOLBOX=true
 
