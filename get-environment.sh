@@ -3,19 +3,36 @@
 set -e  # Bail if something fails
 
 # TODO: Determine if a Docker Toolbox setup
-IS_TOOLBOX=false
+IS_TOOLBOX=true
 
 if [ "$IS_TOOLBOX" = true ]; then
-    echo "TODO: Docker machine environment setup"
+    # Make sure default docker machine is started
+    STATUS=$(docker-machine status default)
+    if [ "$STATUS" != "Running" ]; then
+        docker-machine start default > /dev/null
+    fi
+
+    # Load docker machine env into this shell
+    eval $(docker-machine env default)
 fi
 
 # Get the docker VM's IP address
-DOCKER_IP_CMD="ip -4 addr show scope global dev eth0 | grep inet | awk '{print \$2}' | cut -d / -f 1"
-DOCKER_IP=$(docker run --rm --net=host busybox bin/sh -c "$DOCKER_IP_CMD")
+if [ "$IS_TOOLBOX" = true ]; then
+    # Just use the command that comes with docker-machine
+    DOCKER_IP=$(docker-machine ip)
+else
+    DOCKER_IP="TODO: Docker for Mac VM IP"
+fi
 
 # Get the docker VM Host's IP address
-HOST_IP_CMD="ip -4 route list dev eth0 0/0 | cut -d ' ' -f 3"
-HOST_IP=$(docker run --rm --net=host busybox bin/sh -c "$HOST_IP_CMD")
+if [ "$IS_TOOLBOX" = true ]; then
+    # The host only CIDR address will contain the host's IP (along with a suffix like /24)
+    HOST_IP=$(docker-machine inspect --format '{{ .Driver.HostOnlyCIDR }}' default)
+    # Remove suffix
+    HOST_IP=${HOST_IP//\/[[:digit:]][[:digit:]]/}
+else
+    HOST_IP="TODO: Docker for Mac Host IP"
+fi
 
 # Write values to stdout
 echo "KILLRVIDEO_DOCKER_TOOLBOX=$IS_TOOLBOX"
