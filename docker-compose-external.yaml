@@ -29,7 +29,7 @@ services:
     
   # Container to load KillrVideo schema and search config into DSE
   # Provides options to configure secure users as well
-  dse:
+  dse-config:
     image: killrvideo/killrvideo-dse-config:1.2.2
     environment:
       KILLRVIDEO_DOCKER_IP: $KILLRVIDEO_DOCKER_IP
@@ -38,3 +38,13 @@ services:
       KILLRVIDEO_GRAPH_REPLICATION: $KILLRVIDEO_GRAPH_REPLICATION
       KILLRVIDEO_DSE_USERNAME: $KILLRVIDEO_DSE_USERNAME
       KILLRVIDEO_DSE_PASSWORD: $KILLRVIDEO_DSE_PASSWORD
+
+  # One instance of DataStax Studio
+  studio:
+    image: datastax/dse-studio:6.0.0
+    ports:
+    # The Web UI exposed to our host
+    - "9091:9091"
+    environment:
+      SERVICE_9091_NAME: studio
+      DS_LICENSE: accept
