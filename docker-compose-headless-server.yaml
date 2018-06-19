@@ -9,7 +9,6 @@ services:
     ports:
     - "8899:8899"
     depends_on:
-    - dse
     - etcd
     - web
     environment:
