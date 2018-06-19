@@ -26,6 +26,36 @@ services:
     - "/var/run/docker.sock:/tmp/docker.sock"
     depends_on:
     - etcd
+
+  # Start the KillrVideo web UI on port 3000
+  web:
+    image: killrvideo/killrvideo-web:1.2.8
+    ports:
+    - "3000:3000"
+    depends_on:
+    - dse-config
+    - etcd
+    environment:
+      SERVICE_3000_NAME: web
+      KILLRVIDEO_ETCD: "etcd:2379"
+      KILLRVIDEO_DSE_USERNAME: $KILLRVIDEO_DSE_USERNAME
+      KILLRVIDEO_DSE_PASSWORD: $KILLRVIDEO_DSE_PASSWORD
+      KILLRVIDEO_CASSANDRA_REPLICATION: $KILLRVIDEO_CASSANDRA_REPLICATION
+      KILLRVIDEO_LOGGING_LEVEL: $KILLRVIDEO_LOGGING_LEVEL
+
+  # The sample data generator
+  generator:
+    image: killrvideo/killrvideo-generator:1.2.5
+    depends_on:
+    - dse-config
+    - etcd
+    environment:
+      KILLRVIDEO_ETCD: "etcd:2379"
+      KILLRVIDEO_DSE_USERNAME: $KILLRVIDEO_DSE_USERNAME
+      KILLRVIDEO_DSE_PASSWORD: $KILLRVIDEO_DSE_PASSWORD
+      NODE_ENV: $NODE_ENV
+      KILLRVIDEO_CASSANDRA_REPLICATION: $KILLRVIDEO_CASSANDRA_REPLICATION
+      KILLRVIDEO_LOGGING_LEVEL: $KILLRVIDEO_LOGGING_LEVEL
     
   # Container to load KillrVideo schema and search config into DSE
   # Provides options to configure secure users as well
