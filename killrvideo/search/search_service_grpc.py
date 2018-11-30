@@ -2,6 +2,7 @@ from concurrent import futures
 import time
 
 import grpc
+import etcd
 
 import search_service_pb2
 import search_service_pb2_grpc
@@ -12,23 +13,21 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 def search_videos(video_id, user_id, rating):
     return
 
-def get_rating(video_id):
+def get_query_suggestions(video_id):
     return #response body: video_id, ratings_count, ratings_total
-
-def get_user_rating(video_id, user_id):
-    return #response body: video_id, user_id, rating
 
 
 class SearchServiceServicer(search_service_pb2_grpc.SearchServiceServicer):
     """Provides methods that implement functionality of the Search Service."""
 
     def __init__(self):
-        print "started"
+        print "SearchServiceServicer started"
         return
 
     def SearchVideos(self, request, context):
         """Searches for videos by a given query term
         """
+        print ">>> SearchService:SearchVideos: "
         print request
         # TODO: implement service call
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -39,6 +38,7 @@ class SearchServiceServicer(search_service_pb2_grpc.SearchServiceServicer):
     def GetQuerySuggestions(self, request, context):
         """Gets the current rating stats for a video
         """
+        print ">>> SearchService:GetQuerySuggestions: "
         print request
         # TODO: implement service call
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -46,22 +46,20 @@ class SearchServiceServicer(search_service_pb2_grpc.SearchServiceServicer):
         raise NotImplementedError('Method not implemented!')
         # return search_videos(request.query, request.page_size)
 
-    def GetUserRating(self, request, context):
-        """Gets a user's rating of a specific video and returns 0 if the user hasn't rated the video
-        """
-        print request
-        # TODO: implement service call
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+def init(server):
+    search_service_pb2_grpc.add_SearchServiceServicer_to_server(
+        SearchServiceServicer(), server)
 
 # TODO: remove code for running this single service
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    search_service_pb2_grpc.add_SearchServiceServicer_to_server(
-        SearchServiceServicer(), server)
-    server.add_insecure_port('[::]:50051')
+    init(server)
+    server.add_insecure_port('[::]:8899')
     server.start()
+
+    # TODO: Fix hardcoded values
+    etcd_client = etcd.Client(host='10.0.75.1', port=2379)
+    etcd_client.write('/killrvideo/services/SearchService/killrvideo-python', "10.0.75.1:8899")
 
     # only need this temporarily until such time as we're running multiple services?
     try:

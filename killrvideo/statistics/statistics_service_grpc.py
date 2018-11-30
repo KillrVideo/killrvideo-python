@@ -2,6 +2,7 @@ from concurrent import futures
 import time
 
 import grpc
+import etcd
 
 import statistics_service_pb2
 import statistics_service_pb2_grpc
@@ -13,12 +14,13 @@ class StatisticsServiceServicer(statistics_service_pb2_grpc.StatisticsServiceSer
     """Provides methods that implement functionality of the Statistics Service."""
 
     def __init__(self):
-        print "started"
+        print "StatisticsServiceServicer started"
         return
 
     def RecordPlaybackStarted(self, request, context):
         """Record that playback started for a given video
         """
+        print ">>> StatisticsService:RecordPlaybackStarted: "
         print request
         # TODO: implement service call
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -28,19 +30,27 @@ class StatisticsServiceServicer(statistics_service_pb2_grpc.StatisticsServiceSer
     def GetNumberOfPlays(self, request, context):
         """Get the number of plays for a given video or set of videos
         """
+        print ">>> StatisticsService:GetNumberOfPlays: "
         print request
         # TODO: implement service call
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+def init(server):
+    statistics_service_pb2_grpc.add_StatisticsServiceServicer_to_server(
+        StatisticsServiceServicer(), server)
+
 # TODO: remove code for running this single service
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    statistics_service_pb2_grpc.add_StatisticsServiceServicer_to_server(
-        StatisticsServiceServicer(), server)
-    server.add_insecure_port('[::]:50051')
+    init(server)
+    server.add_insecure_port('[::]:8899')
     server.start()
+
+    # TODO: Fix hardcoded values
+    etcd_client = etcd.Client(host='10.0.75.1', port=2379)
+    etcd_client.write('/killrvideo/services/StatisticsService/killrvideo-python', "10.0.75.1:8899")
 
     # only need this temporarily until such time as we're running multiple services?
     try:
