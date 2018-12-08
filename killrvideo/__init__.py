@@ -3,14 +3,26 @@ import grpc
 import etcd
 import time
 
-from comments import comments_service_grpc
-from ratings import ratings_service_grpc
-from search import search_service_grpc
-from statistics import statistics_service_grpc
-from suggested_videos import suggested_videos_service_grpc
-from uploads import uploads_service_grpc
-from user_management import user_management_service_grpc
-from video_catalog import video_catalog_service_grpc
+from cassandra.cluster import Cluster
+import cassandra.cqlengine.connection
+
+from comments.comments_service_grpc import CommentsServiceServicer
+from ratings.ratings_service_grpc import RatingsServiceServicer
+from search.search_service_grpc import SearchServiceServicer
+from statistics.statistics_service_grpc import StatisticsServiceServicer
+from suggested_videos.suggested_videos_service_grpc import SuggestedVideosServiceServicer
+#from uploads.uploads_service_grpc import UploadsServiceServicer
+from user_management.user_management_service_grpc import UserManagementServiceServicer
+from video_catalog.video_catalog_service_grpc import VideoCatalogServiceServicer
+
+from comments.comments_service import CommentsService
+from ratings.ratings_service import RatingsService
+from search.search_service import SearchService
+from statistics.statistics_service import StatisticsService
+from suggested_videos.suggested_videos_service import SuggestedVideosService
+#from uploads.uploads_service import UploadsService
+from user_management.user_management_service import UserManagementService
+from video_catalog.video_catalog_service import VideoCatalogService
 
 # TODO: replace hardcoded values with properties
 _SERVICE_PORT = "8899"
@@ -21,20 +33,29 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
 def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    # Initialize GRPC Server
+    grpc_server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
-    comments_service_grpc.init(server)
-    ratings_service_grpc.init(server)
-    search_service_grpc.init(server)
-    statistics_service_grpc.init(server)
-    suggested_videos_service_grpc.init(server)
-    uploads_service_grpc.init(server)
-    user_management_service_grpc.init(server)
-    video_catalog_service_grpc.init(server)
+    # Initialize Cassandra Driver and Mapper
+    cluster = Cluster(['10.0.75.1'])
+    session = cluster.connect("killrvideo")
+    cassandra.cqlengine.connection.set_session(session)
 
-    server.add_insecure_port('[::]:' + _SERVICE_PORT)
-    server.start()
+    # Initialize Services (GRPC servicers with reference to GRPC Server and appropriate service reference
+    CommentsServiceServicer(grpc_server, CommentsService())
+    RatingsServiceServicer(grpc_server, RatingsService())
+    SearchServiceServicer(grpc_server, SearchService())
+    StatisticsServiceServicer(grpc_server, StatisticsService())
+    SuggestedVideosServiceServicer(grpc_server, SuggestedVideosService())
+    #UploadsServiceServicer(grpc_server, UploadsService())
+    UserManagementServiceServicer.init(grpc_server, UserManagementService())
+    VideoCatalogServiceServicer.init(grpc_server, VideoCatalogService())
 
+    # Start GRPC Server
+    grpc_server.add_insecure_port('[::]:' + _SERVICE_PORT)
+    grpc_server.start()
+
+    # Register Services with etcd
     service_address = _SERVICE_HOST + ":" + _SERVICE_PORT
     etcd_client = etcd.Client(host=_SERVICE_HOST, port=_ETCD_PORT)
     etcd_client.write('/killrvideo/services/CommentService/killrvideo-python', service_address)
@@ -42,16 +63,16 @@ def serve():
     etcd_client.write('/killrvideo/services/SearchService/killrvideo-python', service_address)
     etcd_client.write('/killrvideo/services/StatisticsService/killrvideo-python', service_address)
     etcd_client.write('/killrvideo/services/SuggestedVideosService/killrvideo-python', service_address)
-    etcd_client.write('/killrvideo/services/UploadsService/killrvideo-python', service_address)
+    #etcd_client.write('/killrvideo/services/UploadsService/killrvideo-python', service_address)
     etcd_client.write('/killrvideo/services/UserManagementService/killrvideo-python', service_address)
     etcd_client.write('/killrvideo/services/VideoCatalogService/killrvideo-python', service_address)
 
-    # keep application alive
+    # Keep application alive
     try:
         while True:
             time.sleep(_ONE_DAY_IN_SECONDS)
     except KeyboardInterrupt:
-        server.stop(0)
+        grpc_server.stop(0)
 
 
 if __name__ == '__main__':

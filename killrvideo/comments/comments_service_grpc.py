@@ -1,31 +1,15 @@
-from concurrent import futures
-import time
-
 import grpc
-import etcd
 
 import comments_service_pb2
 import comments_service_pb2_grpc
 
-_ONE_DAY_IN_SECONDS = 60 * 60 * 24
-
-#TODO refactor service implementation to separate class
-def comment_on_video(video_id, user_id, comment_id, comment):
-    return
-
-def get_user_comments(user_id, page_size, starting_comment_id, paging_state):
-    return
-
-def user_comment(comment_id, video_id, comment, comment_timestamp):
-    return
-
-
 class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer):
     """Provides methods that implement functionality of the Comments Service."""
 
-    def __init__(self):
+    def __init__(self, grpc_server, comments_service):
         print "CommentsServiceServicer started"
-        return
+        self.comments_service = comments_service
+        comments_service_pb2_grpc.add_CommentsServiceServicer_to_server(self, grpc_server)
 
     def CommentOnVideo(self, request, context):
         """Add a new comment to a video
@@ -33,7 +17,7 @@ class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer)
         print ">>> CommentsService:CommentOnVideo: "
         print request
         # TODO: implement service call
-        #comment_on_video(request.video_id, request.user_id, request.comment)
+        #self.comments_service.comment_on_video(UUID(request.video_id.value), UUID(request.user_id.value), request.comment)
         # TODO: publish UserCommentedOnVideo event
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -45,6 +29,8 @@ class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer)
         print ">>> CommentsService:GetUserComments: "
         print request
         # TODO: implement service call
+        #self.comments_service.get_user_comments(UUID(request.user_id.value), page_size, UUID(request.starting_comment_id.value), paging_state)
+        #iterate to build results
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -55,33 +41,9 @@ class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer)
         print ">>> CommentsService:GetVideoComments: "
         print request
         # TODO: implement service call
+        #self.comments_service.get_video_comments(UUID(request.video_id.value), page_size, UUID(request.starting_comment_id.value), paging_state)
+        #iterate to build results
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
-
-def init(server):
-    comments_service_pb2_grpc.add_CommentsServiceServicer_to_server(
-        CommentsServiceServicer(), server)
-
-def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    init(server)
-    server.add_insecure_port('[::]:8899')
-    #port = server.add_insecure_port('[::]:0') # allow GRPC to choose port
-    #print "Starting at port: ", port
-    server.start()
-
-    # TODO: Fix hardcoded values
-    etcd_client = etcd.Client(host='10.0.75.1', port=2379)
-    etcd_client.write('/killrvideo/services/CommentsService/killrvideo-python', "10.0.75.1:8899")
-
-    # only need this temporarily until such time as we're running multiple services?
-    try:
-        while True:
-            time.sleep(_ONE_DAY_IN_SECONDS)
-    except KeyboardInterrupt:
-        server.stop(0)
-
-if __name__ == '__main__':
-    serve()
 
