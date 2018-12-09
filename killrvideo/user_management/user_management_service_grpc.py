@@ -7,7 +7,7 @@ import etcd
 import common.common_types_pb2
 
 from user_management_service import UserManagementService
-from user_management_service_pb2 import VerifyCredentialsResponse, GetUserProfileResponse
+from user_management_service_pb2 import CreateUserResponse, VerifyCredentialsResponse, GetUserProfileResponse
 import user_management_service_pb2_grpc
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
@@ -34,7 +34,10 @@ class UserManagementServiceServicer(user_management_service_pb2_grpc.UserManagem
         """
         print ">>> UserManagementService:CreateUser: "
         print request
-        self.user_management_service.create_user(UUID(request.user_id.value), request.first_name, request.last_name, request.email, request.password)
+        self.user_management_service.create_user(user_id=UUID(request.user_id.value),
+                                                 first_name=request.first_name, last_name=request.last_name,
+                                                 email=request.email, password=request.password)
+        return CreateUserResponse()
 
     def VerifyCredentials(self, request, context):
         """Verify a user's username and password

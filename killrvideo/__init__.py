@@ -2,6 +2,7 @@ from concurrent import futures
 import grpc
 import etcd
 import time
+import logging
 
 from cassandra.cluster import Cluster
 import cassandra.cqlengine.connection
@@ -37,9 +38,10 @@ def serve():
     grpc_server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
     # Initialize Cassandra Driver and Mapper
-    cluster = Cluster(['10.0.75.1'])
-    session = cluster.connect("killrvideo")
-    cassandra.cqlengine.connection.set_session(session)
+    #cluster = Cluster(['10.0.75.1'])
+    #session = cluster.connect("killrvideo")
+    #cassandra.cqlengine.connection.set_session(session)
+    cassandra.cqlengine.connection.setup(['10.0.75.1'], 'killrvideo')
 
     # Initialize Services (GRPC servicers with reference to GRPC Server and appropriate service reference
     CommentsServiceServicer(grpc_server, CommentsService())
@@ -48,8 +50,8 @@ def serve():
     StatisticsServiceServicer(grpc_server, StatisticsService())
     SuggestedVideosServiceServicer(grpc_server, SuggestedVideosService())
     #UploadsServiceServicer(grpc_server, UploadsService())
-    UserManagementServiceServicer.init(grpc_server, UserManagementService())
-    VideoCatalogServiceServicer.init(grpc_server, VideoCatalogService())
+    UserManagementServiceServicer(grpc_server, UserManagementService())
+    VideoCatalogServiceServicer(grpc_server, VideoCatalogService())
 
     # Start GRPC Server
     grpc_server.add_insecure_port('[::]:' + _SERVICE_PORT)
@@ -76,4 +78,5 @@ def serve():
 
 
 if __name__ == '__main__':
+    logging.basicConfig()
     serve()
