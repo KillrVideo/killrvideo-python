@@ -16,6 +16,7 @@ ENV KILLRVIDEO_DSE_PASSWORD ${KILLRVIDEO_DSE_PASSWORD}
 # Install app dependencies
 RUN pip install grpc
 RUN pip install python-etcd
+RUN pip install validate-email
 
 # Create app directory
 COPY killrvideo/ /app
