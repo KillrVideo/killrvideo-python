@@ -1,9 +1,9 @@
 import grpc
+from uuid import UUID
 
-import video_catalog_service_pb2
+from video_catalog_service_pb2 import SubmitUploadedVideoResponse, SubmitYouTubeVideoResponse
 import video_catalog_service_pb2_grpc
-
-_ONE_DAY_IN_SECONDS = 60 * 60 * 24
+from common.common_types_conversions import uuid_to_grpc,grpc_to_uuid
 
 
 class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogServiceServicer):
@@ -19,24 +19,20 @@ class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogSer
         """
         print ">>> VideoCatalogService:SubmitUploadedVideo: "
         print request
-        # TODO: implement service call
-        #video_catalog_service.submit_uploaded_video(UUID(request.video_id), UUID(request.user_id), request.name,
-        # request.description, request.tags, request.upload_url)
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        self.video_catalog_service.submit_uploaded_video(grpc_to_uuid(request.video_id), grpc_to_uuid(request.user_id),
+                                                         request.name, request.description, request.tags,
+                                                         request.upload_url)
+        return SubmitUploadedVideoResponse()
 
     def SubmitYouTubeVideo(self, request, context):
         """Submit a YouTube video to the catalog
         """
         print ">>> VideoCatalogService:SubmitYouTubeVideo: "
         print request
-        # TODO: implement service call
-        #video_catalog_service.submit_youtube_video(request.video_id, request.user_id, request.name,
-        # request.description, request.tags, request.you_tube_video_id)
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        self.video_catalog_service.submit_youtube_video(grpc_to_uuid(request.video_id), grpc_to_uuid(request.user_id),
+                                                        request.name, request.description, request.tags,
+                                                        request.you_tube_video_id)
+        return SubmitYouTubeVideoResponse()
 
     def GetVideo(self, request, context):
         """Gets a video from the catalog

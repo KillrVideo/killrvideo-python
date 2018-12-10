@@ -7,10 +7,10 @@ import validate_email
 
 class UserModel(Model):
     """Model class that maps to the user table"""
-    __table_name__ = 'user'
-    user_id = columns.UUID(primary_key=True)
-    first_name = columns.Text()
-    last_name = columns.Text()
+    __table_name__ = 'users'
+    user_id = columns.UUID(db_field='userid', primary_key=True)
+    first_name = columns.Text(db_field='firstname')
+    last_name = columns.Text(db_field='lastname')
     email = columns.Text()
     created_date = columns.Date()
 
@@ -19,14 +19,14 @@ class UserCredentialsModel(Model):
     """Model class that maps to the user_credentials table"""
     __table_name__ = 'user_credentials'
     email = columns.Text(primary_key=True)
-    user_id = columns.UUID()
+    user_id = columns.UUID(db_field='userid')
     password = columns.Text()
 
 
 def trim_and_hash_password(password):
     md5_hashlib = hashlib.md5()
     md5_hashlib.update(password.strip())
-    return md5_hashlib.digest()
+    return md5_hashlib.hexdigest()
 
 
 class UserManagementService(object):
@@ -45,13 +45,13 @@ class UserManagementService(object):
 
         # insert into user_credentials table first so we can ensure uniqueness with LWT
         try:
-            UserCredentialsModel.if_not_exists().create(user_id=user_id, email=email)
-            #UserCredentialsModel.if_not_exists().create(user_id=user_id, email=email, password=hashed_password)
+            UserCredentialsModel.if_not_exists().create(user_id=user_id, email=email, password=hashed_password).save()
         except LWTException:
-            return ValueError("User with this email already exists")
+            # Exact string in this message is expected by integration test
+            raise ValueError('Exception creating user because it already exists for ' + email)
 
         # insert into users table
-        UserModel.create(user_id=user_id, first_name=first_name, last_name=last_name, email=email)
+        UserModel.create(user_id=user_id, first_name=first_name, last_name=last_name, email=email).save()
 
     def verify_credentials(self, email, password):
         # validate email is not empty or null
@@ -73,6 +73,11 @@ class UserManagementService(object):
     def get_user_profile(self, user_ids):
         if not user_ids:
             raise ValueError('No user IDs provided')
-        return
-        # TODO: implement
-        # for user_id in user_ids:
+
+        #for user_id in user_ids: print user_id
+        print user_ids
+        #user_id_strings = map(str, user_ids)
+        #print user_id_strings
+
+        return UserModel.filter(user_id__in=user_ids).get()
+        #return UserModel.filter(user_id__in=user_id_strings).get()
