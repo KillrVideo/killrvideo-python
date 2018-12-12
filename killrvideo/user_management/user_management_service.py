@@ -45,13 +45,13 @@ class UserManagementService(object):
 
         # insert into user_credentials table first so we can ensure uniqueness with LWT
         try:
-            UserCredentialsModel.if_not_exists().create(user_id=user_id, email=email, password=hashed_password).save()
+            UserCredentialsModel.if_not_exists().create(user_id=user_id, email=email, password=hashed_password)
         except LWTException:
             # Exact string in this message is expected by integration test
             raise ValueError('Exception creating user because it already exists for ' + email)
 
         # insert into users table
-        UserModel.create(user_id=user_id, first_name=first_name, last_name=last_name, email=email).save()
+        UserModel.create(user_id=user_id, first_name=first_name, last_name=last_name, email=email)
 
     def verify_credentials(self, email, password):
         # validate email is not empty or null
@@ -74,10 +74,6 @@ class UserManagementService(object):
         if not user_ids:
             raise ValueError('No user IDs provided')
 
-        #for user_id in user_ids: print user_id
         print user_ids
-        #user_id_strings = map(str, user_ids)
-        #print user_id_strings
 
         return UserModel.filter(user_id__in=user_ids).get()
-        #return UserModel.filter(user_id__in=user_id_strings).get()

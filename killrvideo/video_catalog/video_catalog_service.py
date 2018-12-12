@@ -25,7 +25,7 @@ class LatestVideosModel(Model):
     preview_image_location = columns.Text()
 
 class UserVideosModel(Model):
-    """Model class that maps to the latest_videos table"""
+    """Model class that maps to the user_videos table"""
     __table_name__ = 'user_videos'
     user_id = columns.UUID(primary_key=True)
     added_date = columns.DateTime(primary_key=True, clustering_order='DESC')
@@ -34,11 +34,20 @@ class UserVideosModel(Model):
     name = columns.Text()
     preview_image_location = columns.Text()
 
+class LatestVideoPreviews():
+    def __init__(self, paging_state, videos):
+        self.paging_state = paging_state
+        self.videos = videos
+
+class UserVideoPreviews():
+    def __init__(self, paging_state, videos):
+        self.paging_state = paging_state
+        self.videos = videos
+
 class VideoCatalogService(object):
     """Provides methods that implement functionality of the Video Catalog Service."""
 
     def __init__(self):
-        # TODO: implement method
         return
 
     def submit_uploaded_video(self, video_id, user_id, name, description, tags, upload_url):
