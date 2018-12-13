@@ -1,6 +1,6 @@
 import grpc
 from uuid import UUID
-from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID
+from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, datetime_to_Timestamp
 from video_catalog_service_pb2 import SubmitYouTubeVideoResponse, GetVideoResponse, VideoLocationType, \
     VideoPreview, GetVideoPreviewsResponse, GetLatestVideoPreviewsResponse, GetUserVideoPreviewsResponse
 import video_catalog_service_pb2_grpc
@@ -9,7 +9,7 @@ import video_catalog_service_pb2_grpc
 def VideoModel_to_GetVideoResponse(video):
     response = GetVideoResponse(video_id=UUID_to_grpc(video.video_id), user_id=UUID_to_grpc(video.user_id),
                                 name=video.name, description=video.description, location=video.location,
-                                location_type=VideoLocationType.YOUTUBE, added_date=video.added_date)
+                                location_type=video.location_type, added_date=datetime_to_Timestamp(video.added_date))
     for tag in video.tags:
         response.tags.extend([tag])
     return response
@@ -18,7 +18,7 @@ def VideoModel_to_GetVideoResponse(video):
 def VideoModel_to_VideoPreview(video):
     return VideoPreview(video_id=UUID_to_grpc(video.video_id), user_id=UUID_to_grpc(video.user_id),
                         name=video.name, preview_image_location=video.preview_image_location,
-                        added_date=video.added_date)
+                        added_date=datetime_to_Timestamp(video.added_date))
 
 
 def VideoModels_to_GetVideoPreviewsResponse(videos):
@@ -33,14 +33,14 @@ def VideoModels_to_GetVideoPreviewsResponse(videos):
 def LatestVideosModel_to_VideoPreview(video):
     return VideoPreview(video_id=UUID_to_grpc(video.video_id), user_id=UUID_to_grpc(video.user_id),
                         name=video.name, preview_image_location=video.preview_image_location,
-                        added_date=video.added_date)
+                        added_date=datetime_to_Timestamp(video.added_date))
 
 
 def LatestVideoPreviews_to_GetLatestVideoPreviewsResponse(previews):
-    response = GetLatestVideoPreviewsResponse(previews.paging_state)
+    response = GetLatestVideoPreviewsResponse(paging_state=previews.paging_state)
     if isinstance(previews.videos, (list,)):    # most preferred way to check if it's list
         response.video_previews.extend(map(LatestVideosModel_to_VideoPreview, previews.videos))
-    elif previews.previews is not None:  # single result
+    elif previews.videos is not None:  # single result
         response.video_previews.extend([LatestVideosModel_to_VideoPreview(previews.videos)])
     return response
 
@@ -48,14 +48,14 @@ def LatestVideoPreviews_to_GetLatestVideoPreviewsResponse(previews):
 def UserVideosModel_to_VideoPreview(video):
     return VideoPreview(video_id=UUID_to_grpc(video.video_id), user_id=UUID_to_grpc(video.user_id),
                         name=video.name, preview_image_location=video.preview_image_location,
-                        added_date=video.added_date)
+                        added_date=datetime_to_Timestamp(video.added_date))
 
 
 def UserVideoPreviews_to_GetUserVideoPreviewsResponse(previews):
-    response = GetUserVideoPreviewsResponse()
+    response = GetUserVideoPreviewsResponse(paging_state=previews.paging_state)
     if isinstance(previews.videos, (list,)):    # most preferred way to check if it's list
         response.video_previews.extend(map(UserVideosModel_to_VideoPreview, previews.videos))
-    elif previews.previews is not None:  # single result
+    elif previews.videos is not None:  # single result
         response.video_previews.extend([LatestVideosModel_to_VideoPreview(previews.videos)])
     return response
 
@@ -93,7 +93,7 @@ class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogSer
         """
         print ">>> VideoCatalogService:GetVideo: "
         print request
-        result = self.video_catalog_service.get_video(video_id=UUID(request.video_id))
+        result = self.video_catalog_service.get_video(video_id=grpc_to_UUID(request.video_id))
         print result
         return VideoModel_to_GetVideoResponse(result)
 
@@ -110,10 +110,13 @@ class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogSer
         """Gets video previews for the latest (i.e. newest) videos from the catalog
         """
         print ">>> VideoCatalogService:GetLatestVideoPreviews: "
-        print request
+        print request.starting_video_id.value
+        starting_video_id = None
+        if request.starting_video_id.value:
+            starting_video_id = grpc_to_UUID(request.starting_video_id)
         result = self.video_catalog_service.get_latest_video_previews(page_size=request.page_size,
                                                                       starting_added_date=request.starting_added_date,
-                                                                      starting_video_id=grpc_to_UUID(request.starting_video_id),
+                                                                      starting_video_id=starting_video_id,
                                                                       paging_state=request.paging_state)
         print result
         return LatestVideoPreviews_to_GetLatestVideoPreviewsResponse(result)
@@ -123,10 +126,13 @@ class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogSer
         """
         print ">>> VideoCatalogService:GetUserVideoPreviews: "
         print request
+        starting_video_id = None
+        if request.starting_video_id:
+            starting_video_id = grpc_to_UUID(request.starting_video_id)
         result = self.video_catalog_service.get_user_video_previews(user_id=grpc_to_UUID(request.user_id),
                                                                     page_size=request.page_size,
                                                                     starting_added_date=request.starting_added_date,
-                                                                    starting_video_id=grpc_to_UUID(request.starting_video_id),
+                                                                    starting_video_id=starting_video_id,
                                                                     paging_state=request.paging_state)
         print result
         return UserVideoPreviews_to_GetUserVideoPreviewsResponse(result)

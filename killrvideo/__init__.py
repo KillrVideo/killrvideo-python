@@ -38,10 +38,9 @@ def serve():
     grpc_server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
     # Initialize Cassandra Driver and Mapper
-    #cluster = Cluster(['10.0.75.1'])
-    #session = cluster.connect("killrvideo")
-    #cassandra.cqlengine.connection.set_session(session)
-    cassandra.cqlengine.connection.setup(['10.0.75.1'], 'killrvideo')
+    cluster = Cluster(['10.0.75.1'])
+    session = cluster.connect("killrvideo")
+    cassandra.cqlengine.connection.set_session(session)
 
     # Initialize Services (GRPC servicers with reference to GRPC Server and appropriate service reference
     CommentsServiceServicer(grpc_server, CommentsService())
@@ -51,7 +50,7 @@ def serve():
     SuggestedVideosServiceServicer(grpc_server, SuggestedVideosService())
     #UploadsServiceServicer(grpc_server, UploadsService())
     UserManagementServiceServicer(grpc_server, UserManagementService())
-    VideoCatalogServiceServicer(grpc_server, VideoCatalogService())
+    VideoCatalogServiceServicer(grpc_server, VideoCatalogService(session=session))
 
     # Start GRPC Server
     grpc_server.add_insecure_port('[::]:' + _SERVICE_PORT)
