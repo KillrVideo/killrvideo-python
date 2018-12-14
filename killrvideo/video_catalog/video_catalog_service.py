@@ -58,6 +58,9 @@ class CustomPagingState():
 
 def parse_custom_paging_state(paging_state):
 
+    if not paging_state:
+        return build_first_custom_paging_state()
+
     portions = paging_state.split(',')
     buckets = portions[0].split('_')
     current_bucket = int(portions[1])
@@ -99,7 +102,7 @@ def build_first_custom_paging_state():
     buckets = list()
     date = datetime.today()
 
-    for bucket_num in range(1, NUM_DAYS_FOR_PAGING):
+    for bucket_num in range(0, NUM_DAYS_FOR_PAGING):
         buckets.append(date.strftime('%Y%m%d'))
         date = date - timedelta(days=1)
 
@@ -190,7 +193,8 @@ class VideoCatalogService(object):
 
         buckets = custom_paging_state.buckets
         bucket_index = custom_paging_state.current_bucket
-        cassandra_paging_state = custom_paging_state.cassandra_paging_state
+        # see below where we encode paging state to hex before returning
+        cassandra_paging_state = custom_paging_state.cassandra_paging_state.decode('hex')
 
         print 'Custom paging state is: buckets: ' + str(len(buckets)) + ' bucket index: ' + str(bucket_index) + \
               ' cassandra paging state: ' + cassandra_paging_state
@@ -231,11 +235,11 @@ class VideoCatalogService(object):
             remaining = len(current_rows)
 
             for video_row in current_rows:
-                print 'latest video is: ' + video_row.name
+                print 'latest video is: ' + video_row['name']
                 # Add each row to results
-                results.append(LatestVideosModel(yyyymmdd=video_row.yyyymmdd, added_date=video_row.added_date,
-                               video_id=video_row.video_id, user_id=video_row.user_id, name=video_row.name,
-                               preview_image_location=video_row.preview_image_location))
+                results.append(LatestVideosModel(yyyymmdd=video_row['yyyymmdd'], added_date=video_row['added_date'],
+                               video_id=video_row['videoid'], user_id=video_row['userid'], name=video_row['name'],
+                               preview_image_location=video_row['preview_image_location']))
 
                 # ensure we don't continue asking and pull another page
                 remaining -= 1
@@ -244,12 +248,13 @@ class VideoCatalogService(object):
 
             print 'results size is: ' + str(len(results)) + ' request.getPageSize() is : ' + str(page_size)
             if len(results) == page_size:
-                next_cassandra_paging_state = result_set.paging_state
+                # Use hex encoding since paging state is raw bytes that won't encode to UTF-8
+                next_cassandra_paging_state = result_set.paging_state.encode('hex')
 
                 if next_cassandra_paging_state:
                     print 'results size == page size'
                     # Start from where we left off in this bucket if we get the next page
-                    next_page_state = create_custom_paging_state(buckets, bucket_index, str(next_cassandra_paging_state))
+                    next_page_state = create_custom_paging_state(buckets, bucket_index, next_cassandra_paging_state)
                     break
 
                 # Start from the beginning of the next bucket since we're out of rows in this one
@@ -258,7 +263,7 @@ class VideoCatalogService(object):
                     next_page_state = create_custom_paging_state(buckets, bucket_index + 1, '')
 
                 print 'buckets: ' + str(len(buckets)) + ' index: ' + str(bucket_index) + ' state: ' + \
-                      next_page_state + ' results size: ' + len(results) + ' page size: ' + str(page_size)
+                      next_page_state + ' results size: ' + str(len(results)) + ' page size: ' + str(page_size)
 
             bucket_index += 1
 
@@ -288,28 +293,20 @@ class VideoCatalogService(object):
         result_set = None
 
         if paging_state:
-            result_set = self.session.execute(bound_statement, paging_state=paging_state)
+            # see below where we encode paging state to hex before returning
+            result_set = self.session.execute(bound_statement, paging_state=paging_state.decode('hex'))
         else:
             result_set = self.session.execute(bound_statement)
 
-        # deliberately avoiding paging in background
-        current_rows = result_set.current_rows
-        remaining = len(current_rows)
-
-        for video_row in current_rows:
-            print 'latest video is: ' + video_row.name
-            # Add each row to results
-            results.append(UserVideosModel(user_id=video_row.user_id, added_date=video_row.added_date,
-                                           video_id=video_row.video_id, name=video_row.name,
-                                           preview_image_location=video_row.preview_image_location))
-
-            # ensure we don't continue asking and pull another page
-            remaining -= 1
-            if (remaining == 0):
-                break
+        for video_row in result_set:
+            print 'next user video is: ' + video_row['name']
+            results.append(UserVideosModel(user_id=video_row['userid'], added_date=video_row['added_date'],
+                                           video_id=video_row['videoid'], name=video_row['name'],
+                                           preview_image_location=video_row['preview_image_location']))
 
         if len(results) == page_size:
-            next_page_state = result_set.paging_state
+            # Use hex encoding since paging state is raw bytes that won't encode to UTF-8
+            next_page_state = result_set.paging_state.encode('hex')
 
         return UserVideoPreviews(paging_state=next_page_state, videos=results)
 

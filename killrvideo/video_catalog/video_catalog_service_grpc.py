@@ -1,6 +1,6 @@
 import grpc
 from uuid import UUID
-from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, datetime_to_Timestamp
+from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, datetime_to_Timestamp, Timestamp_to_datetime
 from video_catalog_service_pb2 import SubmitYouTubeVideoResponse, GetVideoResponse, VideoLocationType, \
     VideoPreview, GetVideoPreviewsResponse, GetLatestVideoPreviewsResponse, GetUserVideoPreviewsResponse
 import video_catalog_service_pb2_grpc
@@ -114,8 +114,11 @@ class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogSer
         starting_video_id = None
         if request.starting_video_id.value:
             starting_video_id = grpc_to_UUID(request.starting_video_id)
+        starting_added_date = None
+        if request.starting_added_date.seconds:
+            starting_added_date = Timestamp_to_datetime(request.starting_added_date)
         result = self.video_catalog_service.get_latest_video_previews(page_size=request.page_size,
-                                                                      starting_added_date=request.starting_added_date,
+                                                                      starting_added_date=starting_added_date,
                                                                       starting_video_id=starting_video_id,
                                                                       paging_state=request.paging_state)
         print result
@@ -127,11 +130,14 @@ class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogSer
         print ">>> VideoCatalogService:GetUserVideoPreviews: "
         print request
         starting_video_id = None
-        if request.starting_video_id:
+        if request.starting_video_id.value:
             starting_video_id = grpc_to_UUID(request.starting_video_id)
+        starting_added_date = None
+        if request.starting_added_date.seconds:
+            starting_added_date = Timestamp_to_datetime(request.starting_added_date)
         result = self.video_catalog_service.get_user_video_previews(user_id=grpc_to_UUID(request.user_id),
                                                                     page_size=request.page_size,
-                                                                    starting_added_date=request.starting_added_date,
+                                                                    starting_added_date=starting_added_date,
                                                                     starting_video_id=starting_video_id,
                                                                     paging_state=request.paging_state)
         print result
