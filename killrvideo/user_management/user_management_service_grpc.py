@@ -11,8 +11,7 @@ def UserModel_to_UserProfile(user):
 def UserModelList_to_GetUserProfileResponse(users):
     response = GetUserProfileResponse()
     if isinstance(users, (list,)):    # most preferred way to check if it's list
-        for user in users:
-            response.profiles.extend([UserModel_to_UserProfile(user)])
+        response.profiles.extend(map(UserModel_to_UserProfile, users))
     elif users is not None: # single result
         response.profiles.extend([UserModel_to_UserProfile(users)])
     return response
