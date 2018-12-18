@@ -100,7 +100,7 @@ def build_first_custom_paging_state():
 
     # formulate the time-based values
     buckets = list()
-    date = datetime.today()
+    date = datetime.utcnow()
 
     for bucket_num in range(0, NUM_DAYS_FOR_PAGING):
         buckets.append(date.strftime('%Y%m%d'))
@@ -301,11 +301,22 @@ class VideoCatalogService(object):
         else:
             result_set = self.session.execute(bound_statement)
 
-        for video_row in result_set:
+
+        # deliberately avoiding paging in background
+        current_rows = result_set.current_rows
+
+        remaining = len(current_rows)
+
+        for video_row in current_rows:
             print 'next user video is: ' + video_row['name']
             results.append(UserVideosModel(user_id=video_row['userid'], added_date=video_row['added_date'],
                                            video_id=video_row['videoid'], name=video_row['name'],
                                            preview_image_location=video_row['preview_image_location']))
+
+            # ensure we don't continue asking and pull another page
+            remaining -= 1
+            if (remaining == 0):
+                break
 
         if len(results) == page_size:
             # Use hex encoding since paging state is raw bytes that won't encode to UTF-8
