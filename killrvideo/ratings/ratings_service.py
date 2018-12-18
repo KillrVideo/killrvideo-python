@@ -1,7 +1,6 @@
 from cassandra.cqlengine import columns
 from cassandra.cqlengine.models import Model
 from cassandra.cqlengine.query import BatchQuery, DoesNotExist
-import sys
 
 class VideoRatingsModel(Model):
     """Model class that maps to the video_ratings table"""
