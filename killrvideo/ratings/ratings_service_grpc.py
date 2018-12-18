@@ -1,7 +1,9 @@
 import grpc
 
-import ratings_service_pb2
+from ratings_service_pb2 import RateVideoResponse, GetRatingResponse, GetUserRatingResponse
 import ratings_service_pb2_grpc
+from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID
+
 
 class RatingsServiceServicer(ratings_service_pb2_grpc.RatingsServiceServicer):
     """Provides methods that implement functionality of the Ratings Service."""
@@ -16,32 +18,31 @@ class RatingsServiceServicer(ratings_service_pb2_grpc.RatingsServiceServicer):
         """
         print ">>> RatingsService:RateVideo: "
         print request
-        # TODO: implement service call
-        #self.ratings_service.rate_video(UUID(request.video_id), UUID(user_id), rating):
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        self.ratings_service.rate_video(video_id=grpc_to_UUID(request.video_id),
+                                        user_id=grpc_to_UUID(request.user_id), rating=request.rating)
         # TODO: publish UserRatedVideo event
+        return RateVideoResponse()
 
     def GetRating(self, request, context):
         """Gets the current rating stats for a video
         """
         print ">>> RatingsService:GetRating: "
         print request
-        # TODO: implement service call
-        #self.ratings_service.get_rating(UUID(request.video_id))
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        result = self.ratings_service.get_rating(grpc_to_UUID(request.video_id))
+        print result
+        response = GetRatingResponse(video_id=UUID_to_grpc(result.video_id), ratings_count=result.rating_counter,
+                                 ratings_total=result.rating_total)
+        print response
+        return response
 
     def GetUserRating(self, request, context):
         """Gets a user's rating of a specific video and returns 0 if the user hasn't rated the video
         """
         print ">>> RatingsService:GetUserRating: "
         print request
-        # TODO: implement service call
-        #self.ratings_service.get_user_rating(UUID(request.video_id), request.(user_id))
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
+        result = self.ratings_service.get_user_rating(grpc_to_UUID(request.video_id), grpc_to_UUID(request.user_id))
+        print result
+        response = GetUserRatingResponse(video_id=UUID_to_grpc(result.video_id), user_id=UUID_to_grpc(result.user_id),
+                                     rating=result.rating)
+        print response
+        return response
