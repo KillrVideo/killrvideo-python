@@ -1,7 +1,20 @@
 import grpc
 
-import statistics_service_pb2
+from statistics_service_pb2 import RecordPlaybackStartedResponse, GetNumberOfPlaysResponse, PlayStats
 import statistics_service_pb2_grpc
+from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID
+
+
+def VideoPlaybackStatsModel_to_PlayStats(stats):
+    return PlayStats(video_id=UUID_to_grpc(stats.video_id), views=stats.views)
+
+def VideoPlaybackStatsModelList_to_GetNumberOfPlaysResponse(stats):
+    response = GetNumberOfPlaysResponse()
+    if isinstance(stats, (list,)):    # most preferred way to check if it's list
+        response.stats.extend(map(VideoPlaybackStatsModel_to_PlayStats, stats))
+    elif stats is not None: # single result
+        response.stats.extend([VideoPlaybackStatsModel_to_PlayStats(stats)])
+    return response
 
 class StatisticsServiceServicer(statistics_service_pb2_grpc.StatisticsServiceServicer):
     """Provides methods that implement functionality of the Statistics Service."""
@@ -16,20 +29,17 @@ class StatisticsServiceServicer(statistics_service_pb2_grpc.StatisticsServiceSer
         """
         print ">>> StatisticsService:RecordPlaybackStarted: "
         print request
-        # TODO: implement service call
-        #statistics_service.record_playback_started(UUID(request.video_id))
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        self.statistics_service.record_playback_started(grpc_to_UUID(request.video_id))
+        return RecordPlaybackStartedResponse()
+
 
     def GetNumberOfPlays(self, request, context):
         """Get the number of plays for a given video or set of videos
         """
         print ">>> StatisticsService:GetNumberOfPlays: "
         print request
-        # TODO: implement service call
-        #result = statistics_service.get_number_of_plays(UUID(request.video_id))
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        result = self.statistics_service.get_number_of_plays(map(grpc_to_UUID, request.video_ids))
+        return VideoPlaybackStatsModelList_to_GetNumberOfPlaysResponse(result)
+
+
 
