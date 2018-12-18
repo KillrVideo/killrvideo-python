@@ -74,14 +74,10 @@ class UserManagementService(object):
         if not user_ids:
             raise ValueError('No user IDs provided')
 
-        print user_ids
-
-        return
-
         # see: https://datastax.github.io/python-driver/cqlengine/queryset.html#retrieving-objects-with-filters
         # filter().all() returns a ModelQuerySet, we iterate over the query set to get the Model instances
         user_results = UserModel.filter(user_id__in=user_ids).all()
         users = list()
         for user in user_results:
-            users.append(video)
+            users.append(user)
         return users
