@@ -145,7 +145,7 @@ class VideoCatalogService(object):
         preview_image_location = ''
 
         # formulate the time-based values
-        now = datetime.today()
+        now = datetime.utcnow()
         yyyymmdd = now.strftime('%Y%m%d')
 
         # create and execute batch statement to insert into multiple tables
@@ -185,6 +185,9 @@ class VideoCatalogService(object):
     def get_latest_video_previews(self, page_size, starting_added_date, starting_video_id, paging_state):
         if page_size <= 0:
             raise ValueError('Page size should be strictly positive for get latest preview video request')
+
+        print 'Page size is: ' + str(page_size) + ', starting date is: ' + str(starting_added_date) + \
+              ', starting video ID is: ' + str(starting_video_id)
 
         custom_paging_state = parse_custom_paging_state(paging_state)
 

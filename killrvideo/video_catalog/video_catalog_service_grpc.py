@@ -110,12 +110,12 @@ class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogSer
         """Gets video previews for the latest (i.e. newest) videos from the catalog
         """
         print ">>> VideoCatalogService:GetLatestVideoPreviews: "
-        print request.starting_video_id.value
+        print request
         starting_video_id = None
+        starting_added_date = None
         if request.starting_video_id.value:
             starting_video_id = grpc_to_UUID(request.starting_video_id)
-        starting_added_date = None
-        if request.starting_added_date.seconds:
+        if long(request.starting_added_date.seconds) != 0:
             starting_added_date = Timestamp_to_datetime(request.starting_added_date)
         result = self.video_catalog_service.get_latest_video_previews(page_size=request.page_size,
                                                                       starting_added_date=starting_added_date,
@@ -133,7 +133,7 @@ class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogSer
         if request.starting_video_id.value:
             starting_video_id = grpc_to_UUID(request.starting_video_id)
         starting_added_date = None
-        if request.starting_added_date.seconds:
+        if long(request.starting_added_date.seconds) != 0:
             starting_added_date = Timestamp_to_datetime(request.starting_added_date)
         result = self.video_catalog_service.get_user_video_previews(user_id=grpc_to_UUID(request.user_id),
                                                                     page_size=request.page_size,
