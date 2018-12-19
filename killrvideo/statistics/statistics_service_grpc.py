@@ -1,5 +1,3 @@
-import grpc
-
 from statistics_service_pb2 import RecordPlaybackStartedResponse, GetNumberOfPlaysResponse, PlayStats
 import statistics_service_pb2_grpc
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID
