@@ -10,8 +10,11 @@ def VideoModel_to_GetVideoResponse(video):
     response = GetVideoResponse(video_id=UUID_to_grpc(video.video_id), user_id=UUID_to_grpc(video.user_id),
                                 name=video.name, description=video.description, location=video.location,
                                 location_type=video.location_type, added_date=datetime_to_Timestamp(video.added_date))
-    for tag in video.tags:
-        response.tags.extend([tag])
+    if isinstance(video.tags, (list,)):    # most preferred way to check if it's list
+        response.tags.extend(video.tags)
+    elif video.tags is not None:  # single result
+        response.tags.extend([video.tags])
+    return response
     return response
 
 
