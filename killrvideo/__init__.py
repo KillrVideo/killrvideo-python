@@ -4,8 +4,8 @@ import etcd
 import time
 import logging
 
-from cassandra.cluster import Cluster
-import cassandra.cqlengine.connection
+from dse.cluster import Cluster
+import dse.cqlengine.connection
 
 from comments.comments_service_grpc import CommentsServiceServicer
 from ratings.ratings_service_grpc import RatingsServiceServicer
@@ -40,7 +40,7 @@ def serve():
     # Initialize Cassandra Driver and Mapper
     cluster = Cluster(['10.0.75.1'])
     session = cluster.connect("killrvideo")
-    cassandra.cqlengine.connection.set_session(session)
+    dse.cqlengine.connection.set_session(session)
 
     # Initialize Services (GRPC servicers with reference to GRPC Server and appropriate service reference
     CommentsServiceServicer(grpc_server, CommentsService())

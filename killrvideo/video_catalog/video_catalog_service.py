@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
-from cassandra.cqlengine import columns
-from cassandra.cqlengine.models import Model
-from cassandra.cqlengine.query import BatchQuery
+from dse.cqlengine import columns
+from dse.cqlengine.models import Model
+from dse.cqlengine.query import BatchQuery
 
 YOUTUBE = 0
 UPLOAD = 1

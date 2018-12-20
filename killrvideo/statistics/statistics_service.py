@@ -1,5 +1,5 @@
-from cassandra.cqlengine import columns
-from cassandra.cqlengine.models import Model
+from dse.cqlengine import columns
+from dse.cqlengine.models import Model
 
 class VideoPlaybackStatsModel(Model):
     """Model class that maps to the video_playback_stats table"""

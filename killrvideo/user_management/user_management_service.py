@@ -1,6 +1,6 @@
-from cassandra.cqlengine import columns
-from cassandra.cqlengine.models import Model
-from cassandra.cqlengine.query import LWTException
+from dse.cqlengine import columns
+from dse.cqlengine.models import Model
+from dse.cqlengine.query import LWTException
 import hashlib
 import validate_email
 

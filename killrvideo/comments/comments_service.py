@@ -1,5 +1,5 @@
-from cassandra.cqlengine import columns
-from cassandra.cqlengine.models import Model
+from dse.cqlengine import columns
+from dse.cqlengine.models import Model
 
 class CommentsByVideoModel(Model):
     """Model class that maps to the comments_by_video table"""

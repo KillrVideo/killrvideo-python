@@ -1,6 +1,5 @@
-import grpc
-
 from ratings_service_pb2 import RateVideoResponse, GetRatingResponse, GetUserRatingResponse
+from ratings_events_pb2 import UserRatedVideo
 import ratings_service_pb2_grpc
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID
 
@@ -18,9 +17,14 @@ class RatingsServiceServicer(ratings_service_pb2_grpc.RatingsServiceServicer):
         """
         print ">>> RatingsService:RateVideo: "
         print request
-        self.ratings_service.rate_video(video_id=grpc_to_UUID(request.video_id),
-                                        user_id=grpc_to_UUID(request.user_id), rating=request.rating)
-        # TODO: publish UserRatedVideo event
+        video_id = grpc_to_UUID(request.video_id)
+        user_id = grpc_to_UUID(request.user_id)
+
+        self.ratings_service.rate_video(video_id=video_id, user_id=user_id, rating=request.rating)
+
+        # TODO: Publish UserRatedVideo event
+        #event = UserRatedVideo(video_id=request.video_id, user_id=request.user_id, rating=request.rating, timestamp=None)
+
         return RateVideoResponse()
 
     def GetRating(self, request, context):
