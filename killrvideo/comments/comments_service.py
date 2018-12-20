@@ -21,6 +21,7 @@ class CommentsService(object):
     """Provides methods that implement functionality of the Comments Service."""
 
     def __init__(self):
+        print "here"
         return
 
     def comment_on_video(self, video_id, user_id, comment_id, comment): 
