@@ -2,6 +2,7 @@ import re
 from sortedcontainers import SortedSet
 from cassandra.cqlengine import columns
 from cassandra.cqlengine.models import Model
+from nltk.corpus import stopwords
 
 
 class SearchVideo():
@@ -37,6 +38,7 @@ class SearchService(object):
         self.get_query_suggestions_prepared = \
             session.prepare('SELECT name, tags, description FROM videos WHERE solr_query = ?')
 
+        self.stop_words = set(stopwords.words('english'))
 
     def search_videos(self, query, page_size, paging_state):
         if not query:
@@ -83,7 +85,6 @@ class SearchService(object):
 
         return SearchVideoResults(query=query, paging_state=next_page_state, videos=results)
 
-    # TODO: implement stopwords capability (omit "and", "or", etc.)
     def get_query_suggestions(self, query, page_size):
         if not query:
             raise ValueError('No query string provided')
@@ -130,4 +131,8 @@ class SearchService(object):
             if (remaining == 0):
                 break
 
+        # remove stop words
+        suggestions.difference_update(self.stop_words)
+
         return list(suggestions)
+
