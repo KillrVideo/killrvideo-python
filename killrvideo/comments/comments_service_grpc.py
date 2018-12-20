@@ -1,6 +1,6 @@
 import grpc
 
-import comments_service_pb2
+from comments_service_pb2 import CommentOnVideoRequest, CommentOnVideoResponse, GetUserCommentsRequest, GetUserCommentsResponse, GetVideoCommentsRequest, GetVideoCommentsResponse
 import comments_service_pb2_grpc
 
 class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer):
@@ -16,12 +16,8 @@ class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer)
         """
         print ">>> CommentsService:CommentOnVideo: "
         print request
-        # TODO: implement service call
-        #self.comments_service.comment_on_video(UUID(request.video_id.value), UUID(request.user_id.value), request.comment)
-        # TODO: publish UserCommentedOnVideo event
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        self.comments_service.comment_on_video(UUID(request.video_id.value), UUID(request.user_id.value), request.comment)
+        return CommentOnVideoResponse()       
 
     def GetUserComments(self, request, context):
         """Get comments made by a user

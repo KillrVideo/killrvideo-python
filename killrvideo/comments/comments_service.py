@@ -21,12 +21,13 @@ class CommentsService(object):
     """Provides methods that implement functionality of the Comments Service."""
 
     def __init__(self):
-        # TODO: implement method
         return
 
-    def comment_on_video(self, video_id, user_id, comment_id, comment):
-        # TODO: implement method
+    def comment_on_video(self, video_id, user_id, comment_id, comment): 
+        CommentsByVideoModel.create(video_id=video_id, comment_id=comment_id, user_id=user_id, comment=comment)
+        CommentsByUserModel.create(user_id=user_id, comment_id=comment_id, video_id=video_id, comment=comment)
         return
+           
 
     def get_user_comments(self, user_id, page_size, starting_comment_id, paging_state):
         # TODO: implement method
