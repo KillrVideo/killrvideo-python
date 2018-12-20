@@ -17,6 +17,10 @@ ENV KILLRVIDEO_DSE_PASSWORD ${KILLRVIDEO_DSE_PASSWORD}
 RUN pip install grpc
 RUN pip install python-etcd
 RUN pip install validate-email
+RUN pip install sortedcontainers
+RUN pip install nltk
+RUN python -m nltk.downloader stopwords
+
 
 # Create app directory
 COPY killrvideo/ /app
