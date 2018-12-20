@@ -2,29 +2,28 @@ from suggested_videos_service_pb2 import GetRelatedVideosResponse, GetSuggestedF
 import suggested_videos_service_pb2_grpc
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, datetime_to_Timestamp
 
-def Video_to_SuggestedVideoPreview(video):
+def VideoPreview_to_SuggestedVideoPreview(video):
     return SuggestedVideoPreview(video_id=UUID_to_grpc(video.video_id),
                                  added_date=datetime_to_Timestamp(video.added_date),
                                  name=video.name, preview_image_location=video.preview_image_location,
                                  user_id=UUID_to_grpc(video.user_id))
 
 
-
 def RelatedVideos_to_GetRelatedVideosResponse(related_videos):
-    response = GetRelatedVideosResponse(paging_state=related_videos.paging_state)
+    response = GetRelatedVideosResponse(video_id=related_videos.video_id, paging_state=related_videos.paging_state)
     if isinstance(related_videos.videos, (list,)):    # most preferred way to check if it's list
-        response.stats.extend(map(Video_to_SuggestedVideoPreview, related_videos.videos))
+        response.videos.extend(map(VideoPreview_to_SuggestedVideoPreview,related_videos.videos))
     elif related_videos.videos is not None: # single result
-        response.stats.extend([Video_to_SuggestedVideoPreview(related_videos.videos)])
+        response.videos.extend([VideoPreview_to_SuggestedVideoPreview(related_videos.videos)])
     return response
 
 
 def SuggestedVideos_to_GetSuggestedForUserResponse(suggested_videos):
-    response = GetSuggestedForUserResponse(paging_state=suggested_videos.paging_state)
+    response = GetSuggestedForUserResponse(user_id=suggested_videos.user_id, paging_state=suggested_videos.paging_state)
     if isinstance(suggested_videos.videos, (list,)):    # most preferred way to check if it's list
-        response.stats.extend(map(Video_to_SuggestedVideoPreview, suggested_videos.videos))
+        response.videos.extend(map(VideoPreview_to_SuggestedVideoPreview,suggested_videos.videos))
     elif suggested_videos.videos is not None: # single result
-        response.stats.extend([Video_to_SuggestedVideoPreview(suggested_videos.videos)])
+        response.videos.extend([VideoPreview_to_SuggestedVideoPreview(suggested_videos.videos)])
     return response
 
 

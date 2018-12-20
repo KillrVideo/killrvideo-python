@@ -3,6 +3,7 @@ from uuid import UUID
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, datetime_to_Timestamp, Timestamp_to_datetime
 from video_catalog_service_pb2 import SubmitYouTubeVideoResponse, GetVideoResponse, VideoLocationType, \
     VideoPreview, GetVideoPreviewsResponse, GetLatestVideoPreviewsResponse, GetUserVideoPreviewsResponse
+from video_catalog_events_pb2 import YouTubeVideoAdded
 import video_catalog_service_pb2_grpc
 
 
@@ -82,12 +83,20 @@ class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogSer
         """
         print ">>> VideoCatalogService:SubmitYouTubeVideo: "
         print request
-        self.video_catalog_service.submit_youtube_video(video_id=grpc_to_UUID(request.video_id),
-                                                        user_id=grpc_to_UUID(request.user_id),
+        video_id = grpc_to_UUID(request.video_id)
+        user_id = grpc_to_UUID(request.user_id)
+        self.video_catalog_service.submit_youtube_video(video_id=video_id,
+                                                        user_id=user_id,
                                                         name=request.name,
                                                         description=request.description,
                                                         tags=request.tags,
                                                         you_tube_video_id=request.you_tube_video_id)
+        # TODO: publish YouTubeVideoAdded event
+        #event = YouTubeVideoAdded(video_id=request.video_id, user_id=request.user_id, name=request.name,
+        #                          description=request.description, tags=request.tags,
+        #                          location=request.you_tube_video_id, preview_image_location=None,
+        #                          added_date=None, timestamp=None)
+
         return SubmitYouTubeVideoResponse()
 
     def GetVideo(self, request, context):

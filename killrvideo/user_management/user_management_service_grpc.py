@@ -1,6 +1,7 @@
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID
 from user_management_service_pb2 import CreateUserResponse, VerifyCredentialsResponse, GetUserProfileResponse, \
     UserProfile
+from user_management_events_pb2 import UserCreated
 import user_management_service_pb2_grpc
 
 
@@ -29,9 +30,15 @@ class UserManagementServiceServicer(user_management_service_pb2_grpc.UserManagem
         """
         print ">>> UserManagementService:CreateUser: "
         print request
-        self.user_management_service.create_user(user_id=grpc_to_UUID(request.user_id),
+        user_id = grpc_to_UUID(request.user_id)
+
+        self.user_management_service.create_user(user_id=user_id,
                                                  first_name=request.first_name,last_name=request.last_name,
                                                  email=request.email,password=request.password)
+        # TODO: Publish UserCreated event
+        #event = UserCreated(user_id=request.user_id, first_name=request.first_name, last_name=request.last_name,
+        #                    email=request.email)
+
         return CreateUserResponse()
 
     def VerifyCredentials(self, request, context):
