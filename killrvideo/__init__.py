@@ -45,9 +45,9 @@ def serve():
     # Initialize Services (GRPC servicers with reference to GRPC Server and appropriate service reference
     CommentsServiceServicer(grpc_server, CommentsService())
     RatingsServiceServicer(grpc_server, RatingsService())
-    SearchServiceServicer(grpc_server, SearchService())
+    SearchServiceServicer(grpc_server, SearchService(session=session))
     StatisticsServiceServicer(grpc_server, StatisticsService())
-    SuggestedVideosServiceServicer(grpc_server, SuggestedVideosService())
+    SuggestedVideosServiceServicer(grpc_server, SuggestedVideosService(session=session))
     #UploadsServiceServicer(grpc_server, UploadsService())
     UserManagementServiceServicer(grpc_server, UserManagementService())
     VideoCatalogServiceServicer(grpc_server, VideoCatalogService(session=session))
