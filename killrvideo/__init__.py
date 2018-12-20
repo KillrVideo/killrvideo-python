@@ -59,7 +59,7 @@ def serve():
     # Register Services with etcd
     service_address = _SERVICE_HOST + ":" + _SERVICE_PORT
     etcd_client = etcd.Client(host=_SERVICE_HOST, port=_ETCD_PORT)
-    etcd_client.write('/killrvideo/services/CommentService/killrvideo-python', service_address)
+    etcd_client.write('/killrvideo/services/CommentsService/killrvideo-python', service_address)
     etcd_client.write('/killrvideo/services/RatingsService/killrvideo-python', service_address)
     etcd_client.write('/killrvideo/services/SearchService/killrvideo-python', service_address)
     etcd_client.write('/killrvideo/services/StatisticsService/killrvideo-python', service_address)

@@ -1,5 +1,6 @@
 import grpc
-
+from uuid import UUID
+from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID
 from comments_service_pb2 import CommentOnVideoRequest, CommentOnVideoResponse, GetUserCommentsRequest, GetUserCommentsResponse, GetVideoCommentsRequest, GetVideoCommentsResponse
 import comments_service_pb2_grpc
 
@@ -7,7 +8,7 @@ class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer)
     """Provides methods that implement functionality of the Comments Service."""
 
     def __init__(self, grpc_server, comments_service):
-        print "CommentsServiceServicer started!"
+        print "CommentsServiceServicer started"
         self.comments_service = comments_service
         comments_service_pb2_grpc.add_CommentsServiceServicer_to_server(self, grpc_server)
 
@@ -16,7 +17,7 @@ class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer)
         """
         print ">>> CommentsService:CommentOnVideo: "
         print request
-        self.comments_service.comment_on_video(UUID(request.video_id.value), UUID(request.user_id.value), request.comment)
+        self.comments_service.comment_on_video(UUID(request.video_id.value), UUID(request.user_id.value), UUID(request.comment_id.value), request.comment)
         return CommentOnVideoResponse()       
 
     def GetUserComments(self, request, context):
