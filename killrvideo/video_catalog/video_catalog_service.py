@@ -141,7 +141,7 @@ class VideoCatalogService(object):
         elif not you_tube_video_id:
             raise ValueError('video YouTube id should be provided for submit youtube video request')
 
-        # formulate the preview location
+        # TODO: formulate the preview location
         preview_image_location = ''
 
         # formulate the time-based values
