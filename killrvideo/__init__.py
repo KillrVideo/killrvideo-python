@@ -34,13 +34,26 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
 def serve():
-    # Initialize GRPC Server
-    grpc_server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+
+    service_address = _SERVICE_HOST + ":" + _SERVICE_PORT
+    etcd_client = etcd.Client(host=_SERVICE_HOST, port=_ETCD_PORT)
+
+    # Wait for Cassandra (DSE) to be up, aka registered in etcd
+    while True:
+        try:
+            etcd_client.read('/killrvideo/services/cassandra')
+            break # if we get here, Cassandra is registered and should be available
+        except etcd.EtcdKeyNotFound:
+            logging.info('Waiting for Cassandra to be registered in etcd, sleeping 10s')
+            time.sleep(10)
 
     # Initialize Cassandra Driver and Mapper
     cluster = Cluster(['10.0.75.1'])
     session = cluster.connect("killrvideo")
     dse.cqlengine.connection.set_session(session)
+
+    # Initialize GRPC Server
+    grpc_server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
     # Initialize Services (GRPC servicers with reference to GRPC Server and appropriate service reference
     CommentsServiceServicer(grpc_server, CommentsService())
@@ -57,8 +70,6 @@ def serve():
     grpc_server.start()
 
     # Register Services with etcd
-    service_address = _SERVICE_HOST + ":" + _SERVICE_PORT
-    etcd_client = etcd.Client(host=_SERVICE_HOST, port=_ETCD_PORT)
     etcd_client.write('/killrvideo/services/CommentsService/killrvideo-python', service_address)
     etcd_client.write('/killrvideo/services/RatingsService/killrvideo-python', service_address)
     etcd_client.write('/killrvideo/services/SearchService/killrvideo-python', service_address)
