@@ -142,10 +142,11 @@ class VideoCatalogService(object):
         elif not you_tube_video_id:
             raise ValueError('video YouTube id should be provided for submit youtube video request')
 
-        # TODO: formulate the preview location
-        preview_image_location = ''
+        # Formulate the preview location
+        preview_image_location = '//img.youtube.com/vi/' + you_tube_video_id + '/hqdefault.jpg'
 
-        # formulate the time-based values
+
+    # formulate the time-based values
         now = datetime.utcnow()
         yyyymmdd = now.strftime('%Y%m%d')
 
