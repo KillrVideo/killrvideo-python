@@ -43,7 +43,7 @@ def serve():
     dse.cqlengine.connection.set_session(session)
 
     # Initialize Services (GRPC servicers with reference to GRPC Server and appropriate service reference
-    CommentsServiceServicer(grpc_server, CommentsService())
+    CommentsServiceServicer(grpc_server, CommentsService(session=session))
     RatingsServiceServicer(grpc_server, RatingsService())
     SearchServiceServicer(grpc_server, SearchService(session=session))
     StatisticsServiceServicer(grpc_server, StatisticsService())

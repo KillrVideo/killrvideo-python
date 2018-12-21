@@ -13,16 +13,29 @@ class CommentsByVideoModel(Model):
 class CommentsByUserModel(Model):
     """Model class that maps to the comments_by_user table"""
     __table_name__ = 'comments_by_user'
-    user_id = columns.UUID(db_field='videoid', primary_key=True)
+    user_id = columns.UUID(db_field='userid', primary_key=True)
     comment_id = columns.UUID(db_field='commentid', primary_key=True, clustering_order='DESC')
-    video_id = columns.UUID(db_field='userid')
+    video_id = columns.UUID(db_field='videoid')
     comment = columns.Text()
 
 class CommentsService(object):
     """Provides methods that implement functionality of the Comments Service."""
 
-    def __init__(self):
-        return
+    def __init__(self, session):
+        self.session = session
+
+        # Prepared statements for get_user_comments()
+        self.userComments_startingPointPrepared = \
+            session.prepare('SELECT * FROM comments_by_user WHERE userid = ? AND (commentid) <= (?)')
+        self.userComments_noStartingPointPrepared = \
+            session.prepare('SELECT * FROM comments_by_user WHERE userid = ?')
+
+        # Prepared statements for get_video_comments()
+        self.videoComments_startingPointPrepared = \
+            session.prepare('SELECT * FROM comments_by_video WHERE videoid = ? AND (commentid) <= (?)')
+        self.videoComments_noStartingPointPrepared = \
+            session.prepare('SELECT * FROM comments_by_video WHERE videoid = ?')
+
 
     def comment_on_video(self, video_id, user_id, comment_id, comment):
         #Checking values have been provided 
@@ -44,7 +57,57 @@ class CommentsService(object):
            
 
     def get_user_comments(self, user_id, page_size, starting_comment_id, paging_state):
-        # TODO: implement method
+        if page_size <= 0:
+            raise ValueError('Page size should be strictly positive for get user preview video request')
+        
+        results = list()
+        next_page_state = ''
+
+        bound_statement = None
+
+        if starting_comment_id:
+            bound_statement = self.userComments_startingPointPrepared.bind([user_id,
+                                                                                starting_comment_id])
+        else:
+            bound_statement = self.userComments_noStartingPointPrepared.bind([user_id])
+
+        print 'Current query is: ' + str(bound_statement)
+
+        bount_statement.fetch_size = page_size
+        result_set = None
+        
+        if paging_state:
+            # see below where we encode paging state to hex before returning
+            result_set = self.session.execute(bound_statement, paging_state=paging_state.decode('hex'))
+        else:
+            result_set = self.session.execute(bound_statement)
+
+        # deliberately avoiding paging in background
+        current_rows = result_set.current_rows
+
+        remaining = len(current_rows)
+
+        for comment_row in current_rows:
+            print 'next user comment is: ' + comment_row['comment']
+            results.append(CommentsByUserModel(user_id=comment_row['userid'],
+                                           comment_id=comment_row['commitid'], video_id=comment_row['videoid'],
+                                           comment=comment_row['comment']))
+
+            # ensure we don't continue asking and pull another page
+            remaining -= 1
+            if (remaining == 0):
+                break
+
+        if len(results) == page_size:
+            # Use hex encoding since paging state is raw bytes that won't encode to UTF-8
+            next_page_state = result_set.paging_state.encode('hex')
+
+        return GetUserComments(paging_state=next_page_state, videos=results)
+
+
+
+
+
         return
 
     def get_video_comments(self, video_id, page_size, starting_comment_id, paging_state):
