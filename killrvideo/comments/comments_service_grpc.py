@@ -10,9 +10,9 @@ def CommentsByUserModel_to_GetUserComments(result):
 def UserComments_to_GetUserCommentsResponse(results):
     response = GetUserCommentsResponse(paging_state=results.paging_state)
     if isinstance(results, (list,)):    # most preferred way to check if it's list
-        response.comments.extend(map(CommentsByUserModel_to_GetUserComments, results))
+        response.comments.extend(map(CommentsByUserModel_to_GetUserComments, results.comments))
     elif results is not None:  # single result
-        response.comments.extend([CommentsByUserModel_to_GetUserComments(results)])
+        response.comments.extend([CommentsByUserModel_to_GetUserComments(results.comments)])
     return response
 
 class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer):
@@ -39,8 +39,8 @@ class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer)
         starting_comment_id = None
         if request.starting_comment_id.value:
             starting_comment_id = grpc_to_UUID(request.starting_comment_id)
-        result = self.comments_service.get_user_comments(grpc_to_UUID(request.user_id), request.page_size, starting_comment_id, request.paging_state)
-        print result
+        result = self.comments_service.get_user_comments(user_id=grpc_to_UUID(request.user_id), page_size=request.page_size, starting_comment_id=request.starting_comment_id, paging_state=request.paging_state)
+        print "**" + result
         return UserComments_to_GetUserCommentsResponse(result)
 
     def GetVideoComments(self, request, context):
