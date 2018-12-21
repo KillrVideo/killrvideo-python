@@ -4,7 +4,8 @@ import etcd
 import time
 import logging
 
-from dse.cluster import Cluster
+from dse.cluster import Cluster, ExecutionProfile, EXEC_PROFILE_DEFAULT
+from dse import ConsistencyLevel
 import dse.cqlengine.connection
 
 from comments.comments_service_grpc import CommentsServiceServicer
@@ -48,7 +49,8 @@ def serve():
             time.sleep(10)
 
     # Initialize Cassandra Driver and Mapper
-    cluster = Cluster(['10.0.75.1'])
+    profile = ExecutionProfile(consistency_level = ConsistencyLevel.LOCAL_QUORUM)
+    cluster = Cluster(contact_points=['10.0.75.1'], execution_profiles={EXEC_PROFILE_DEFAULT: profile})
     session = cluster.connect("killrvideo")
     dse.cqlengine.connection.set_session(session)
 
