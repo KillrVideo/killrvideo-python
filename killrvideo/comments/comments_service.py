@@ -107,7 +107,6 @@ class CommentsService(object):
         if len(results) == page_size:
             # Use hex encoding since paging state is raw bytes that won't encode to UTF-8
             next_page_state = result_set.paging_state.encode('hex')
-
         return GetUserComments(paging_state=next_page_state, comments=results)
 
 

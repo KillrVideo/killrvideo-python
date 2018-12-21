@@ -1,6 +1,7 @@
 import grpc
 from uuid import UUID
-from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID
+from time_uuid import TimeUUID
+from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, grpc_totimeUUID
 from comments_service_pb2 import CommentOnVideoRequest, CommentOnVideoResponse, GetUserCommentsRequest, GetUserCommentsResponse, GetVideoCommentsRequest, GetVideoCommentsResponse
 import comments_service_pb2_grpc
 
@@ -39,8 +40,9 @@ class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer)
         starting_comment_id = None
         if request.starting_comment_id.value:
             starting_comment_id = grpc_to_UUID(request.starting_comment_id)
-        result = self.comments_service.get_user_comments(user_id=grpc_to_UUID(request.user_id), page_size=request.page_size, starting_comment_id=request.starting_comment_id, paging_state=request.paging_state)
-        print "**" + result
+        print "here"
+        result = self.comments_service.get_user_comments(user_id=grpc_to_UUID(request.user_id), page_size=request.page_size, starting_comment_id=grpc_totimeUUID(request.starting_comment_id), paging_state=request.paging_state)
+        print result
         return UserComments_to_GetUserCommentsResponse(result)
 
     def GetVideoComments(self, request, context):
