@@ -5,7 +5,7 @@ from comments_service_pb2 import CommentOnVideoRequest, CommentOnVideoResponse, 
 import comments_service_pb2_grpc
 
 def CommentsByUserModel_to_GetUserComments(result):
-    return GetUserComments(user_id=UUID_to_grpc(result.user_id), page_size=result.page_size, starting_comment_id=UUID_to_grpc(result.starting_comment_id), paging_state=result.paging_state)
+    return GetUserCommentsRequest(user_id=UUID_to_grpc(result.user_id), page_size=result.page_size, starting_comment_id=UUID_to_grpc(result.starting_comment_id), paging_state=result.paging_state)
 
 def UserComments_to_GetUserCommentsResponse(results):
     response = GetUserCommentsResponse(paging_state=previews.paging_state)
@@ -39,7 +39,7 @@ class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer)
         starting_comment_id = None
         if request.starting_comment_id.value:
             starting_comment_id = grpc_to_UUID(request.starting_comment_id)
-        result = self.comments_service.get_user_comments(UUID(request.user_id.value), request.page_size, UUID(request.starting_comment_id.value), request.paging_state)
+        result = self.comments_service.get_user_comments(grpc_to_UUID(request.user_id), request.page_size, starting_comment_id, request.paging_state)
         print result
         return UserComments_to_GetUserCommentsResponse(result)
 
