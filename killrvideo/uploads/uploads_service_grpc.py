@@ -7,15 +7,15 @@ class UploadsServiceServicer(uploads_service_pb2_grpc.UploadsServiceServicer):
     """Provides methods that implement functionality of the Uploads Service."""
 
     def __init__(self, grpc_server, uploads_service):
-        print "UploadsServiceServicer started"
+        logging.debug("UploadsServiceServicer started")
         self.uploads_service = uploads_service
         uploads_service_pb2_grpc.add_UploadsServiceServicer_to_server(self, grpc_server)
 
     def GetUploadDestination(self, request, context):
         """Gets an upload destination for a user to upload a video
         """
-        print ">>> UploadsService:GetUploadDestination: "
-        print request
+        logging.debug(">>> UploadsService:GetUploadDestination: ")
+        logging.debug(request)
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -23,8 +23,8 @@ class UploadsServiceServicer(uploads_service_pb2_grpc.UploadsServiceServicer):
     def MarkUploadComplete(self, request, context):
         """Marks an upload as complete
         """
-        print ">>> UploadsService:MarkUploadComplete: "
-        print request
+        logging.debug(">>> UploadsService:MarkUploadComplete: ")
+        logging.debug(request)
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -32,8 +32,8 @@ class UploadsServiceServicer(uploads_service_pb2_grpc.UploadsServiceServicer):
     def GetStatusOfVideo(self, request, context):
         """Gets the status of an uploaded video
         """
-        print ">>> UploadsService:GetStatusOfVideo: "
-        print request
+        logging.debug(">>> UploadsService:GetStatusOfVideo: ")
+        logging.debug(request)
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')

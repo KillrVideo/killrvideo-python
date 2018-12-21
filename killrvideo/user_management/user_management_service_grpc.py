@@ -1,3 +1,4 @@
+import logging
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID
 from user_management_service_pb2 import CreateUserResponse, VerifyCredentialsResponse, GetUserProfileResponse, \
     UserProfile
@@ -21,15 +22,15 @@ class UserManagementServiceServicer(user_management_service_pb2_grpc.UserManagem
     """Provides methods that implement functionality of the UserManagement Service."""
 
     def __init__(self, grpc_server, user_management_service):
-        print "UserManagementServiceServicer started"
+        logging.debug("UserManagementServiceServicer started")
         self.user_management_service = user_management_service
         user_management_service_pb2_grpc.add_UserManagementServiceServicer_to_server(self, grpc_server)
 
     def CreateUser(self, request, context):
         """Creates a new user
         """
-        print ">>> UserManagementService:CreateUser: "
-        print request
+        logging.debug(">>> UserManagementService:CreateUser: ")
+        logging.debug(request)
         user_id = grpc_to_UUID(request.user_id)
 
         self.user_management_service.create_user(user_id=user_id,
@@ -44,8 +45,8 @@ class UserManagementServiceServicer(user_management_service_pb2_grpc.UserManagem
     def VerifyCredentials(self, request, context):
         """Verify a user's username and password
         """
-        print ">>> UserManagementService:VerifyCredentials: "
-        print request
+        logging.debug(">>> UserManagementService:VerifyCredentials: ")
+        logging.debug(request)
         result = self.user_management_service.verify_credentials(request.email, request.password)
         if result:
             return VerifyCredentialsResponse(user_id=UUID_to_grpc(result))
@@ -55,10 +56,10 @@ class UserManagementServiceServicer(user_management_service_pb2_grpc.UserManagem
     def GetUserProfile(self, request, context):
         """Gets a user or group of user's profiles
         """
-        print ">>> UserManagementService:GetUserProfile: "
-        print request
+        logging.debug(">>> UserManagementService:GetUserProfile: ")
+        logging.debug(request)
         result = self.user_management_service.get_user_profile(map(grpc_to_UUID,request.user_ids))
-        print result
+        logging.debug(result)
         return UserModelList_to_GetUserProfileResponse(result)
 
 

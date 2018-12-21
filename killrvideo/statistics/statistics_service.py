@@ -1,3 +1,4 @@
+import logging
 from dse.cqlengine import columns
 from dse.cqlengine.models import Model
 
@@ -31,6 +32,6 @@ class StatisticsService(object):
         stats_results = VideoPlaybackStatsModel.filter(video_id__in=video_ids).all()
         stats_list = list()
         for stats in stats_results:
-            print stats
+            logging.debug(stats)
             stats_list.append(stats)
         return stats_list

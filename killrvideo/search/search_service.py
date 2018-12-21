@@ -1,3 +1,4 @@
+import logging
 import re
 from sortedcontainers import SortedSet
 from dse.cqlengine import columns
@@ -69,7 +70,7 @@ class SearchService(object):
         remaining = len(current_rows)
 
         for video_row in current_rows:
-            print 'next search video is: ' + video_row['name']
+            logging.debug('next search video is: ' + video_row['name'])
             results.append(SearchVideo(user_id=video_row['userid'], added_date=video_row['added_date'],
                                        video_id=video_row['videoid'], name=video_row['name'],
                                        preview_image_location=video_row['preview_image_location']))
@@ -113,17 +114,17 @@ class SearchService(object):
         pattern = re.compile(r'\b' + re.escape(query) + r'[a-z]*\b')
 
         for video_row in current_rows:
-            print 'next video used for suggestions is: ' + video_row['name']
+            logging.debug('next video used for suggestions is: ' + video_row['name'])
 
             for name_term in re.findall(pattern, video_row['name']):
-                print 'Name term: ' + name_term
+                logging.debug('Name term: ' + name_term)
                 suggestions.add(name_term)
             for tag in video_row['tags']:
                 for tag_term in re.findall(pattern, tag):
-                    print 'Tag term: ' + tag_term
+                    logging.debug('Tag term: ' + tag_term)
                     suggestions.add(tag_term)
             for desc_term in re.findall(pattern, video_row['description']):
-                print 'Description term: ' + desc_term
+                logging.debug('Description term: ' + desc_term)
                 suggestions.add(desc_term)
 
             # ensure we don't continue asking and pull another page

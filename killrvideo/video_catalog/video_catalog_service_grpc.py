@@ -1,5 +1,5 @@
 import grpc
-from uuid import UUID
+import logging
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, datetime_to_Timestamp, Timestamp_to_datetime
 from video_catalog_service_pb2 import SubmitYouTubeVideoResponse, GetVideoResponse, VideoLocationType, \
     VideoPreview, GetVideoPreviewsResponse, GetLatestVideoPreviewsResponse, GetUserVideoPreviewsResponse
@@ -67,7 +67,7 @@ class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogSer
     """Provides methods that implement functionality of the VideoCatalog Service."""
 
     def __init__(self, grpc_server, video_catalog_service):
-        print "VideoCatalogServiceServicer started"
+        logging.debug("VideoCatalogServiceServicer started")
         self.video_catalog_service = video_catalog_service
         video_catalog_service_pb2_grpc.add_VideoCatalogServiceServicer_to_server(self, grpc_server)
 
@@ -81,8 +81,8 @@ class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogSer
     def SubmitYouTubeVideo(self, request, context):
         """Submit a YouTube video to the catalog
         """
-        print ">>> VideoCatalogService:SubmitYouTubeVideo: "
-        print request
+        logging.debug(">>> VideoCatalogService:SubmitYouTubeVideo: ")
+        logging.debug(request)
         video_id = grpc_to_UUID(request.video_id)
         user_id = grpc_to_UUID(request.user_id)
         self.video_catalog_service.submit_youtube_video(video_id=video_id,
@@ -102,26 +102,26 @@ class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogSer
     def GetVideo(self, request, context):
         """Gets a video from the catalog
         """
-        print ">>> VideoCatalogService:GetVideo: "
-        print request
+        logging.debug(">>> VideoCatalogService:GetVideo: ")
+        logging.debug(request)
         result = self.video_catalog_service.get_video(video_id=grpc_to_UUID(request.video_id))
-        print result
+        logging.debug(result)
         return VideoModel_to_GetVideoResponse(result)
 
     def GetVideoPreviews(self, request, context):
         """Gets video previews for a limited number of videos from the catalog
         """
-        print ">>> VideoCatalogService:GetVideoPreviews: "
-        print request
+        logging.debug(">>> VideoCatalogService:GetVideoPreviews: ")
+        logging.debug(request)
         result = self.video_catalog_service.get_video_previews(video_ids=map(grpc_to_UUID, request.video_ids))
-        print result
+        logging.debug(result)
         return VideoModels_to_GetVideoPreviewsResponse(result)
 
     def GetLatestVideoPreviews(self, request, context):
         """Gets video previews for the latest (i.e. newest) videos from the catalog
         """
-        print ">>> VideoCatalogService:GetLatestVideoPreviews: "
-        print request
+        logging.debug(">>> VideoCatalogService:GetLatestVideoPreviews: ")
+        logging.debug(request)
         starting_video_id = None
         starting_added_date = None
         if request.starting_video_id.value:
@@ -132,14 +132,14 @@ class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogSer
                                                                       starting_added_date=starting_added_date,
                                                                       starting_video_id=starting_video_id,
                                                                       paging_state=request.paging_state)
-        print result
+        logging.debug(result)
         return LatestVideoPreviews_to_GetLatestVideoPreviewsResponse(result)
 
     def GetUserVideoPreviews(self, request, context):
         """Gets video previews for videos added to the site by a particular user
         """
-        print ">>> VideoCatalogService:GetUserVideoPreviews: "
-        print request
+        logging.debug(">>> VideoCatalogService:GetUserVideoPreviews: ")
+        logging.debug(request)
         starting_video_id = None
         if request.starting_video_id.value:
             starting_video_id = grpc_to_UUID(request.starting_video_id)
@@ -151,5 +151,5 @@ class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogSer
                                                                     starting_added_date=starting_added_date,
                                                                     starting_video_id=starting_video_id,
                                                                     paging_state=request.paging_state)
-        print result
+        logging.debug(result)
         return UserVideoPreviews_to_GetUserVideoPreviewsResponse(result)

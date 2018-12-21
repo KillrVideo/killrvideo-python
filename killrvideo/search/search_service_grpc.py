@@ -1,3 +1,4 @@
+import logging
 from search_service_pb2 import SearchVideosResponse, GetQuerySuggestionsResponse, SearchResultsVideoPreview
 import search_service_pb2_grpc
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, datetime_to_Timestamp
@@ -31,7 +32,7 @@ class SearchServiceServicer(search_service_pb2_grpc.SearchServiceServicer):
     """Provides methods that implement functionality of the Search Service."""
 
     def __init__(self, grpc_server, search_service):
-        print "SearchServiceServicer started"
+        logging.debug("SearchServiceServicer started")
         self.search_service = search_service
         search_service_pb2_grpc.add_SearchServiceServicer_to_server(self, grpc_server)
 
@@ -39,8 +40,8 @@ class SearchServiceServicer(search_service_pb2_grpc.SearchServiceServicer):
     def SearchVideos(self, request, context):
         """Searches for videos by a given query term
         """
-        print ">>> SearchService:SearchVideos: "
-        print request
+        logging.debug(">>> SearchService:SearchVideos: ")
+        logging.debug(request)
         result = self.search_service.search_videos(request.query, request.page_size, request.paging_state)
         return VideoList_to_SearchVideosResponse(result)
 
@@ -48,8 +49,8 @@ class SearchServiceServicer(search_service_pb2_grpc.SearchServiceServicer):
     def GetQuerySuggestions(self, request, context):
         """Gets the current rating stats for a video
         """
-        print ">>> SearchService:GetQuerySuggestions: "
-        print request
+        logging.debug(">>> SearchService:GetQuerySuggestions: ")
+        logging.debug(request)
         result = self.search_service.get_query_suggestions(request.query, request.page_size)
         return Suggestions_to_GetQuerySuggestionsResponse(result)
 
