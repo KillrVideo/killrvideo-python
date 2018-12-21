@@ -18,6 +18,12 @@ class CommentsByUserModel(Model):
     video_id = columns.UUID(db_field='videoid')
     comment = columns.Text()
 
+
+class GetUserComments():
+   def __init__(self, paging_state, comments):
+       self.paging_state = paging_state
+       self.comments = comments
+
 class CommentsService(object):
     """Provides methods that implement functionality of the Comments Service."""
 
@@ -90,7 +96,7 @@ class CommentsService(object):
         for comment_row in current_rows:
             print 'next user comment is: ' + comment_row['comment']
             results.append(CommentsByUserModel(user_id=comment_row['userid'],
-                                           comment_id=comment_row['commitid'], video_id=comment_row['videoid'],
+                                           comment_id=comment_row['commentid'], video_id=comment_row['videoid'],
                                            comment=comment_row['comment']))
 
             # ensure we don't continue asking and pull another page
@@ -102,7 +108,7 @@ class CommentsService(object):
             # Use hex encoding since paging state is raw bytes that won't encode to UTF-8
             next_page_state = result_set.paging_state.encode('hex')
 
-        return GetUserComments(paging_state=next_page_state, videos=results)
+        return GetUserComments(paging_state=next_page_state, comments=results)
 
 
 

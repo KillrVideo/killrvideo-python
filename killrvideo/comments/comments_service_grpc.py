@@ -8,11 +8,11 @@ def CommentsByUserModel_to_GetUserComments(result):
     return GetUserCommentsRequest(user_id=UUID_to_grpc(result.user_id), page_size=result.page_size, starting_comment_id=UUID_to_grpc(result.starting_comment_id), paging_state=result.paging_state)
 
 def UserComments_to_GetUserCommentsResponse(results):
-    response = GetUserCommentsResponse(paging_state=previews.paging_state)
+    response = GetUserCommentsResponse(paging_state=results.paging_state)
     if isinstance(results, (list,)):    # most preferred way to check if it's list
         response.comments.extend(map(CommentsByUserModel_to_GetUserComments, results))
     elif results is not None:  # single result
-        response.comments.extend([UserCommentsModel_to_GetUserComments(results)])
+        response.comments.extend([CommentsByUserModel_to_GetUserComments(results)])
     return response
 
 class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer):
