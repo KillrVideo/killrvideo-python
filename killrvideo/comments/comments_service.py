@@ -73,7 +73,7 @@ class CommentsService(object):
 
         print 'Current query is: ' + str(bound_statement)
 
-        bount_statement.fetch_size = page_size
+        bound_statement.fetch_size = page_size
         result_set = None
         
         if paging_state:
