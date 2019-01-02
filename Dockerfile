@@ -1,5 +1,5 @@
 # Dockerfile
-FROM python:3.6-alpine
+FROM python:3.6
 
 ARG KILLRVIDEO_DOCKER_IP
 ENV KILLRVIDEO_DOCKER_IP ${KILLRVIDEO_DOCKER_IP}
@@ -14,8 +14,10 @@ ARG KILLRVIDEO_DSE_PASSWORD
 ENV KILLRVIDEO_DSE_PASSWORD ${KILLRVIDEO_DSE_PASSWORD}
 
 # Install app dependencies
+# RUN sudo apt-get install gcc
 RUN pip install dse-driver
-RUN pip install grpc
+RUN pip install dse-graph  
+RUN pip install grpcio
 RUN pip install python-etcd
 RUN pip install validate-email
 RUN pip install sortedcontainers
@@ -29,4 +31,4 @@ WORKDIR /app
 
 EXPOSE 8899
  
-CMD ["gunicorn", "-w 4", "main:app"]
+CMD ["python", "./__init__.py"]

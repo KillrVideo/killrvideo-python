@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 from dse.cqlengine import columns
 from dse.cqlengine.models import Model
@@ -141,10 +142,11 @@ class VideoCatalogService(object):
         elif not you_tube_video_id:
             raise ValueError('video YouTube id should be provided for submit youtube video request')
 
-        # TODO: formulate the preview location
-        preview_image_location = ''
+        # Formulate the preview location
+        preview_image_location = '//img.youtube.com/vi/' + you_tube_video_id + '/hqdefault.jpg'
 
-        # formulate the time-based values
+
+    # formulate the time-based values
         now = datetime.utcnow()
         yyyymmdd = now.strftime('%Y%m%d')
 
@@ -186,8 +188,8 @@ class VideoCatalogService(object):
         if page_size <= 0:
             raise ValueError('Page size should be strictly positive for get latest preview video request')
 
-        print 'Page size is: ' + str(page_size) + ', starting date is: ' + str(starting_added_date) + \
-              ', starting video ID is: ' + str(starting_video_id)
+        logging.debug('Page size is: ' + str(page_size) + ', starting date is: ' + str(starting_added_date) + \
+              ', starting video ID is: ' + str(starting_video_id))
 
         custom_paging_state = parse_custom_paging_state(paging_state)
 
@@ -199,15 +201,15 @@ class VideoCatalogService(object):
         # see below where we encode paging state to hex before returning
         cassandra_paging_state = custom_paging_state.cassandra_paging_state.decode('hex')
 
-        print 'Custom paging state is: buckets: ' + str(len(buckets)) + ' bucket index: ' + str(bucket_index) + \
-              ' cassandra paging state: ' + cassandra_paging_state
+        logging.debug('Custom paging state is: buckets: ' + str(len(buckets)) + ' bucket index: ' + str(bucket_index) + \
+              ' cassandra paging state: ' + cassandra_paging_state)
 
         while bucket_index < len(buckets):
 
             records_still_needed = page_size - len(results)
 
-            print 'records_still_needed is: ' + str(records_still_needed) + ' page_size is: ' + str(page_size) + \
-                  ' results.size is: ' + str(len(results))
+            logging.debug('records_still_needed is: ' + str(records_still_needed) + ' page_size is: ' + str(page_size) + \
+                  ' results.size is: ' + str(len(results)))
 
             yyyymmdd = buckets[bucket_index]
 
@@ -219,10 +221,10 @@ class VideoCatalogService(object):
             else:
                 bound_statement = self.latestVideoPreview_noStartingPointPrepared.bind([yyyymmdd])
 
-            print 'Current query is: ' + str(bound_statement)
+            logging.debug('Current query is: ' + str(bound_statement))
 
             bound_statement.fetch_size = records_still_needed
-            print 'FETCH SIZE is: ' + str(bound_statement.fetch_size) + ' added_date is: ' + yyyymmdd
+            logging.debug('FETCH SIZE is: ' + str(bound_statement.fetch_size) + ' added_date is: ' + yyyymmdd)
 
             result_set = None
 
@@ -238,7 +240,7 @@ class VideoCatalogService(object):
             remaining = len(current_rows)
 
             for video_row in current_rows:
-                print 'latest video is: ' + video_row['name']
+                logging.debug('latest video is: ' + video_row['name'])
                 # Add each row to results
                 results.append(LatestVideosModel(yyyymmdd=video_row['yyyymmdd'], added_date=video_row['added_date'],
                                video_id=video_row['videoid'], user_id=video_row['userid'], name=video_row['name'],
@@ -249,24 +251,24 @@ class VideoCatalogService(object):
                 if (remaining == 0):
                     break
 
-            print 'results size is: ' + str(len(results)) + ' request.getPageSize() is : ' + str(page_size)
+            logging.debug('results size is: ' + str(len(results)) + ' request.getPageSize() is : ' + str(page_size))
             if len(results) == page_size:
                 # Use hex encoding since paging state is raw bytes that won't encode to UTF-8
                 next_cassandra_paging_state = result_set.paging_state.encode('hex')
 
                 if next_cassandra_paging_state:
-                    print 'results size == page size'
+                    logging.debug('results size == page size')
                     # Start from where we left off in this bucket if we get the next page
                     next_page_state = create_custom_paging_state(buckets, bucket_index, next_cassandra_paging_state)
                     break
 
                 # Start from the beginning of the next bucket since we're out of rows in this one
                 elif bucket_index == len(buckets) - 1:
-                    print 'bucket_index == len(buckets) - 1)'
+                    logging.debug('bucket_index == len(buckets) - 1)')
                     next_page_state = create_custom_paging_state(buckets, bucket_index + 1, '')
 
-                print 'buckets: ' + str(len(buckets)) + ' index: ' + str(bucket_index) + ' state: ' + \
-                      next_page_state + ' results size: ' + str(len(results)) + ' page size: ' + str(page_size)
+                logging.debug('buckets: ' + str(len(buckets)) + ' index: ' + str(bucket_index) + ' state: ' + \
+                      next_page_state + ' results size: ' + str(len(results)) + ' page size: ' + str(page_size))
 
             bucket_index += 1
 
@@ -289,7 +291,7 @@ class VideoCatalogService(object):
         else:
             bound_statement = self.userVideoPreview_noStartingPointPrepared.bind([user_id])
 
-        print 'Current query is: ' + str(bound_statement)
+        logging.debug('Current query is: ' + str(bound_statement))
 
         bound_statement.fetch_size = page_size
 
@@ -308,7 +310,7 @@ class VideoCatalogService(object):
         remaining = len(current_rows)
 
         for video_row in current_rows:
-            print 'next user video is: ' + video_row['name']
+            logging.debug('next user video is: ' + video_row['name'])
             results.append(UserVideosModel(user_id=video_row['userid'], added_date=video_row['added_date'],
                                            video_id=video_row['videoid'], name=video_row['name'],
                                            preview_image_location=video_row['preview_image_location']))

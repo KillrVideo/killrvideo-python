@@ -1,3 +1,4 @@
+import logging
 from statistics_service_pb2 import RecordPlaybackStartedResponse, GetNumberOfPlaysResponse, PlayStats
 import statistics_service_pb2_grpc
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID
@@ -18,15 +19,15 @@ class StatisticsServiceServicer(statistics_service_pb2_grpc.StatisticsServiceSer
     """Provides methods that implement functionality of the Statistics Service."""
 
     def __init__(self, grpc_server, statistics_service):
-        print "StatisticsServiceServicer started"
+        logging.debug("StatisticsServiceServicer started")
         self.statistics_service = statistics_service
         statistics_service_pb2_grpc.add_StatisticsServiceServicer_to_server(self, grpc_server)
 
     def RecordPlaybackStarted(self, request, context):
         """Record that playback started for a given video
         """
-        print ">>> StatisticsService:RecordPlaybackStarted: "
-        print request
+        logging.debug(">>> StatisticsService:RecordPlaybackStarted: ")
+        logging.debug(request)
         self.statistics_service.record_playback_started(grpc_to_UUID(request.video_id))
         return RecordPlaybackStartedResponse()
 
@@ -34,8 +35,8 @@ class StatisticsServiceServicer(statistics_service_pb2_grpc.StatisticsServiceSer
     def GetNumberOfPlays(self, request, context):
         """Get the number of plays for a given video or set of videos
         """
-        print ">>> StatisticsService:GetNumberOfPlays: "
-        print request
+        logging.debug(">>> StatisticsService:GetNumberOfPlays: ")
+        logging.debug(request)
         result = self.statistics_service.get_number_of_plays(map(grpc_to_UUID, request.video_ids))
         return VideoPlaybackStatsModelList_to_GetNumberOfPlaysResponse(result)
 

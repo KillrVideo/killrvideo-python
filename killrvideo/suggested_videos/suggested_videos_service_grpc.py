@@ -1,3 +1,4 @@
+import logging
 from suggested_videos_service_pb2 import GetRelatedVideosResponse, GetSuggestedForUserResponse, SuggestedVideoPreview
 import suggested_videos_service_pb2_grpc
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, datetime_to_Timestamp
@@ -31,7 +32,7 @@ class SuggestedVideosServiceServicer(suggested_videos_service_pb2_grpc.Suggested
     """Provides methods that implement functionality of the SuggestedVideos Service."""
 
     def __init__(self, grpc_server, suggested_videos_service):
-        print "SuggestedVideosServiceServicer started"
+        logging.debug("SuggestedVideosServiceServicer started")
         self.suggested_videos_service = suggested_videos_service
         suggested_videos_service_pb2_grpc.add_SuggestedVideoServiceServicer_to_server(self, grpc_server)
 
@@ -39,8 +40,8 @@ class SuggestedVideosServiceServicer(suggested_videos_service_pb2_grpc.Suggested
     def GetRelatedVideos(self, request, context):
         """Gets videos related to another video
         """
-        print ">>> SuggestedVideosService:GetRelatedVideos: "
-        print request
+        logging.debug(">>> SuggestedVideosService:GetRelatedVideos: ")
+        logging.debug(request)
         result = self.suggested_videos_service.get_related_videos(grpc_to_UUID(request.video_id), request.page_size,
                                                                   request.paging_state)
         return RelatedVideos_to_GetRelatedVideosResponse(result)
@@ -49,8 +50,8 @@ class SuggestedVideosServiceServicer(suggested_videos_service_pb2_grpc.Suggested
     def GetSuggestedForUser(self, request, context):
         """Gets personalized video suggestions for a user
         """
-        print ">>> SuggestedVideosService:GetSuggestedForUser: "
-        print request
+        logging.debug(">>> SuggestedVideosService:GetSuggestedForUser: ")
+        logging.debug(request)
         result = self.suggested_videos_service.get_suggested_for_user(grpc_to_UUID(request.user_id), request.page_size,
                                                                       request.paging_state)
         return SuggestedVideos_to_GetSuggestedForUserResponse(result)
