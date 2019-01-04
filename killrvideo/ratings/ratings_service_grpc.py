@@ -23,9 +23,6 @@ class RatingsServiceServicer(ratings_service_pb2_grpc.RatingsServiceServicer):
 
         self.ratings_service.rate_video(video_id=video_id, user_id=user_id, rating=request.rating)
 
-        # TODO: Publish UserRatedVideo event
-        #event = UserRatedVideo(video_id=request.video_id, user_id=request.user_id, rating=request.rating, timestamp=None)
-
         return RateVideoResponse()
 
     def GetRating(self, request, context):

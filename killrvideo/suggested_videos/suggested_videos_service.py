@@ -1,9 +1,4 @@
-from dse.cluster import Cluster
-from dse.cqlengine import columns
-from dse.cqlengine.models import Model
-from dse.cqlengine.query import LWTException
-import dse.cqlengine.connection
-from uuid import UUID
+from suggested_videos_events_kafka import SuggestedVideosConsumer
 
 class VideoPreview():
     def __init__(self, video_id, added_date, name, preview_image_location, user_id):
@@ -31,6 +26,7 @@ class SuggestedVideosService(object):
 
     def __init__(self, session):
         self.session = session
+        self.suggested_videos_consumer = SuggestedVideosConsumer(self)
 
 
     def get_related_videos(self, video_id, page_size, paging_state):

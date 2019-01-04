@@ -4,34 +4,53 @@ version: '3'
 services:
 
   # Python service implementation
-  killrvideo-python:
-    image: killrvideo/killrvideo-python:0.1.0
-    ports:
-    - "8899:8899"
-    depends_on:
-    - dse
-    - etcd
-    environment:
-      KILLRVIDEO_DSE_USERNAME: $KILLRVIDEO_DSE_USERNAME
-      KILLRVIDEO_DSE_PASSWORD: $KILLRVIDEO_DSE_PASSWORD
-      KILLRVIDEO_CASSANDRA_REPLICATION: $KILLRVIDEO_CASSANDRA_REPLICATION
-      KILLRVIDEO_LOGGING_LEVEL: $KILLRVIDEO_LOGGING_LEVEL
+  #killrvideo-python:
+  #  image: killrvideo/killrvideo-python:0.1.0
+  #  ports:
+  #  - "8899:8899"
+  #  depends_on:
+  #  - dse
+  #  - etcd
+  #  environment:
+  #    KILLRVIDEO_DSE_USERNAME: $KILLRVIDEO_DSE_USERNAME
+  #    KILLRVIDEO_DSE_PASSWORD: $KILLRVIDEO_DSE_PASSWORD
+  #    KILLRVIDEO_CASSANDRA_REPLICATION: $KILLRVIDEO_CASSANDRA_REPLICATION
+  #    KILLRVIDEO_LOGGING_LEVEL: $KILLRVIDEO_LOGGING_LEVEL
 
   # Python service implementation
-  tests:
-    image: killrvideo/killrvideo-integration-tests:1.0.0
+  #tests:
+  #  image: killrvideo/killrvideo-integration-tests:1.0.0
+  #  ports:
+  #    # Zeppelin WEB UI port
+  #    - 8080:8080
+  #    # Python HTTP Web Server port
+  #    - 8123:8123
+  #  depends_on:
+  #    - etcd
+  #    - dse
+  #  environment:
+  #    KILLRVIDEO_DOCKER_IP: $KILLRVIDEO_DOCKER_IP
+  #    SERVICE_8080_NAME: zeppelin
+  #    SERVICE_8123_NAME: python_web_server
+
+  # Ensure consistency in Kafka World
+  zookeeper:
+    image: wurstmeister/zookeeper
     ports:
-      # Zeppelin WEB UI port
-      - 8080:8080
-      # Python HTTP Web Server port
-      - 8123:8123
+      - 2181:2181
+
+  # Start the Kafka Engine for Killrvideo
+  kafka:
+    image: wurstmeister/kafka
     depends_on:
-      - etcd
-      - dse
+      - zookeeper
     environment:
-      KILLRVIDEO_DOCKER_IP: $KILLRVIDEO_DOCKER_IP
-      SERVICE_8080_NAME: zeppelin
-      SERVICE_8123_NAME: python_web_server
+      KAFKA_ADVERTISED_HOST_NAME: localhost
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPICS: "topic-kv-videoCreation:1:1:compact,topic-kv-userCreation:1:1:compact,topic-kv-videoRating:1:1:compact"
+    ports:
+      - 9092:9092
 
   # Start the KillrVideo web UI on port 3000
   web:

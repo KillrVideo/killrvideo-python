@@ -1,6 +1,8 @@
+from datetime import datetime
 from dse.cqlengine import columns
 from dse.cqlengine.models import Model
 from dse.cqlengine.query import BatchQuery, DoesNotExist
+from ratings_events_kafka import RatingPublisher
 
 class VideoRatingsModel(Model):
     """Model class that maps to the video_ratings table"""
@@ -20,7 +22,7 @@ class RatingsService(object):
     """Provides methods that implement functionality of the Ratings Service."""
 
     def __init__(self):
-        return
+        self.rating_publisher = RatingPublisher()
 
 
     def rate_video(self, video_id, user_id, rating):
@@ -32,13 +34,19 @@ class RatingsService(object):
         elif not rating:
             raise ValueError('rating should be provided for rate video request')
 
+        now = datetime.utcnow()
+
         # create and execute batch statement to insert into multiple tables
-        batch_query = BatchQuery()
+        batch_query = BatchQuery(timestamp=now)
         VideoRatingsByUserModel.batch(batch_query).create(video_id=video_id, user_id=user_id, rating=rating)
         # updating counter columns rating_counter and rating_total - values are interpreted as amount to increment
         VideoRatingsModel(video_id=video_id).update(rating_counter=1, rating_total=rating).batch(batch_query)
 
         batch_query.execute()
+
+        # Publish UserRatedVideo event
+        self.rating_publisher.publish_user_rated_video_event(video_id=video_id, user_id=user_id, rating=rating,
+                                                             timestamp=now)
 
 
     def get_rating(self, video_id):
