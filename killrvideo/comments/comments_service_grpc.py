@@ -2,19 +2,21 @@ import grpc
 import logging
 from uuid import UUID
 from time_uuid import TimeUUID
-from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, grpc_totimeUUID
-from comments_service_pb2 import CommentOnVideoRequest, CommentOnVideoResponse, GetUserCommentsRequest, GetUserCommentsResponse, GetVideoCommentsRequest, GetVideoCommentsResponse
+from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, grpc_totimeUUID, TimeUUID_to_grpc
+from comments_service_pb2 import UserComment, CommentOnVideoRequest, CommentOnVideoResponse, GetUserCommentsRequest, GetUserCommentsResponse, GetVideoCommentsRequest, GetVideoCommentsResponse
 import comments_service_pb2_grpc
 
 def CommentsByUserModel_to_GetUserComments(result):
-    return GetUserCommentsRequest(user_id=UUID_to_grpc(result.user_id), page_size=result.page_size, starting_comment_id=UUID_to_grpc(result.starting_comment_id), paging_state=result.paging_state)
+    return UserComment(comment_id=TimeUUID_to_grpc(result.comment_id), video_id=UUID_to_grpc(result.video_id), comment=result.comment)
+    #return GetUserCommentsRequest(user_id=UUID_to_grpc(result.user_id), page_size=result.page_size, starting_comment_id=TimeUUID_to_grpc(result.starting_comment_id), paging_state=result.paging_state)
 
 def UserComments_to_GetUserCommentsResponse(results):
     response = GetUserCommentsResponse(paging_state=results.paging_state)
-    if isinstance(results, (list,)):    # most preferred way to check if it's list
-        response.comments.extend(map(CommentsByUserModel_to_GetUserComments, results))
-    elif results is not None:  # single result
-        response.comments.extend([CommentsByUserModel_to_GetUserComments(results)])
+    if isinstance(results.comments, (list,)):    # most preferred way to check if it's list
+        response.comments.extend(map(CommentsByUserModel_to_GetUserComments, results.comments))
+    elif results.comments is not None:  # single result
+        response.comments.extend([CommentsByUserModel_to_GetUserComments(results.comments)])
+        print response
     return response
 
 class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer):
@@ -43,7 +45,7 @@ class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer)
         print request
         starting_comment_id = None
         if request.starting_comment_id.value:
-            starting_comment_id = grpc_to_UUID(request.starting_comment_id)
+            starting_comment_id = grpc_totimeUUID(request.starting_comment_id)
         print "here"
         result = self.comments_service.get_user_comments(user_id=grpc_to_UUID(request.user_id), page_size=request.page_size, starting_comment_id=starting_comment_id, paging_state=request.paging_state)
         print "there"

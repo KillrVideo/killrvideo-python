@@ -20,10 +20,7 @@ class CommentsByUserModel(Model):
 
 
 class GetUserComments():
-   def __init__(self, user_id, starting_comment_id, page_size, paging_state, comments):
-       self.user_id = user_id
-       self.starting_comment_id = starting_comment_id
-       self.page_size = page_size
+   def __init__(self, paging_state, comments):
        self.paging_state = paging_state
        self.comments = comments
 
@@ -110,7 +107,7 @@ class CommentsService(object):
         if len(results) == page_size:
             # Use hex encoding since paging state is raw bytes that won't encode to UTF-8
             next_page_state = result_set.paging_state.encode('hex')
-        return GetUserComments(user_id=user_id, starting_comment_id=starting_comment_id, page_size=page_size, paging_state=next_page_state, comments=results)
+        return GetUserComments(paging_state=next_page_state, comments=results)
 
 
 

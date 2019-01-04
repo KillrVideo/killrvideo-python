@@ -11,6 +11,9 @@ def UUID_to_grpc(uuid):
 def grpc_to_UUID(uuid):
     return UUID(uuid.value)
 
+def TimeUUID_to_grpc(uuid):
+    return common.common_types_pb2.TimeUuid(value=str(uuid))
+
 def grpc_totimeUUID(uuid):
     return TimeUUID(uuid.value)
 
