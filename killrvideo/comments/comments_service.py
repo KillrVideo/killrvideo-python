@@ -1,3 +1,4 @@
+import logging
 from dse.cqlengine import columns
 from dse.cqlengine.models import Model
 from dse.cqlengine.query import BatchQuery
@@ -20,6 +21,11 @@ class CommentsByUserModel(Model):
 
 
 class GetUserComments():
+   def __init__(self, paging_state, comments):
+       self.paging_state = paging_state
+       self.comments = comments
+
+class GetVideoComments():
    def __init__(self, paging_state, comments):
        self.paging_state = paging_state
        self.comments = comments
@@ -64,7 +70,7 @@ class CommentsService(object):
 
     def get_user_comments(self, user_id, page_size, starting_comment_id, paging_state):
         if page_size <= 0:
-            raise ValueError('Page size should be strictly positive for get user preview video request')
+            raise ValueError('Page size should be strictly positive for get user comments')
         
         results = list()
         next_page_state = ''
@@ -77,7 +83,7 @@ class CommentsService(object):
         else:
             bound_statement = self.userComments_noStartingPointPrepared.bind([user_id])
 
-        print 'Current query is: ' + str(bound_statement)
+        logging.debug('Current query is: ' + str(bound_statement))
 
         bound_statement.fetch_size = page_size
         result_set = None
@@ -94,7 +100,7 @@ class CommentsService(object):
         remaining = len(current_rows)
 
         for comment_row in current_rows:
-            print 'next user comment is: ' + comment_row['comment']
+            logging.debug('next user comment is: ' + comment_row['comment'])
             results.append(CommentsByUserModel(user_id=comment_row['userid'],
                                            comment_id=comment_row['commentid'], video_id=comment_row['videoid'],
                                            comment=comment_row['comment']))
@@ -109,13 +115,50 @@ class CommentsService(object):
             next_page_state = result_set.paging_state.encode('hex')
         return GetUserComments(paging_state=next_page_state, comments=results)
 
-
-
-
-
-        return
-
     def get_video_comments(self, video_id, page_size, starting_comment_id, paging_state):
-        # TODO: implement method
-        return
+        if page_size <= 0:
+            raise ValueError('Page size should be strictly positive for get video comments')
+
+        results = list()
+        next_page_state = ''
+
+        bound_statement = None
+
+        if starting_comment_id:
+            bound_statement = self.videoComments_startingPointPrepared.bind([video_id,
+                                                                                starting_comment_id])
+        else:
+            bound_statement = self.videoComments_noStartingPointPrepared.bind([video_id])
+
+        logging.debug('Current query is: ' + str(bound_statement))
+
+        bound_statement.fetch_size = page_size
+        result_set = None
+
+        if paging_state:
+            # see below where we encode paging state to hex before returning
+            result_set = self.session.execute(bound_statement, paging_state=paging_state.decode('hex'))
+        else:
+            result_set = self.session.execute(bound_statement)
+
+        # deliberately avoiding paging in background
+        current_rows = result_set.current_rows
+
+        remaining = len(current_rows)
+
+        for comment_row in current_rows:
+            logging.debug('next video comment is: ' + comment_row['comment'])
+            results.append(CommentsByVideoModel(video_id=comment_row['videoid'],
+                                           comment_id=comment_row['commentid'], user_id=comment_row['userid'],
+                                           comment=comment_row['comment']))
+
+            # ensure we don't continue asking and pull another page
+            remaining -= 1
+            if (remaining == 0):
+                break
+
+        if len(results) == page_size:
+            # Use hex encoding since paging state is raw bytes that won't encode to UTF-8
+            next_page_state = result_set.paging_state.encode('hex')
+        return GetVideoComments(paging_state=next_page_state, comments=results)
 
