@@ -9,7 +9,8 @@ class UserManagementPublisher(object):
     """Provides methods that publish events associated with the User Management Service."""
 
     def __init__(self):
-        self.producer = KafkaProducer(bootstrap_servers='10.0.75.1:9092')
+        self.producer = KafkaProducer(bootstrap_servers='10.0.75.1:9092',
+                                      client_id='killrvideo-python:UserManagementService')
 
 
     def publish_user_created_event(self, user_id, first_name, last_name, email, timestamp):
