@@ -19,7 +19,10 @@ class SuggestedVideoKafkaConsumer(multiprocessing.Process):
         self.suggested_videos_consumer = suggested_videos_consumer
 
     def run(self):
-        consumer = KafkaConsumer(bootstrap_servers=BOOTSTRAP_SERVERS)
+        consumer = KafkaConsumer(bootstrap_servers=BOOTSTRAP_SERVERS,
+                                 client_id='killrvideo-python:SuggestedVideosService',
+                                 fetch_max_wait_ms=10000) # poll every 10 seconds for new events
+
         consumer.subscribe([USER_CREATED_TOPIC, USER_RATED_VIDEO_TOPIC, YOUTUBE_VIDEO_ADDED_TOPIC])
 
         for event in consumer:
@@ -43,6 +46,8 @@ class SuggestedVideosConsumer(object):
     def process_user_created(self, value):
         user_created = UserCreated()
         user_created.ParseFromString(value)
+        logging.debug(">>> SuggestedVideosService:HandleUserCreated: ")
+        logging.debug(user_created)
         self.suggested_videos_service.handle_user_created(user_id=grpc_to_UUID(user_created.user_id),
                                                           first_name=user_created.first_name,
                                                           last_name=user_created.last_name,
@@ -52,6 +57,8 @@ class SuggestedVideosConsumer(object):
     def process_user_rated_video(self, value):
         user_rated_video = UserRatedVideo()
         user_rated_video.ParseFromString(value)
+        logging.debug(">>> SuggestedVideosService:HandleUserRatedVideo: ")
+        logging.debug(user_rated_video)
         self.suggested_videos_service.handle_user_rated_video(video_id=grpc_to_UUID(user_rated_video.video_id),
                                                               user_id=grpc_to_UUID(user_rated_video.user_id),
                                                               rating=user_rated_video.rating,
@@ -60,6 +67,8 @@ class SuggestedVideosConsumer(object):
     def process_youtube_video_added(self, value):
         video_added = YouTubeVideoAdded()
         video_added.ParseFromString(value)
+        logging.debug(">>> SuggestedVideosService:HandleVideoAdded: ")
+        logging.debug(video_added)
         self.suggested_videos_service.handle_youtube_video_added(video_id=grpc_to_UUID(video_added.video_id),
                                                                  user_id=grpc_to_UUID(video_added.user_id),
                                                                  name=video_added.name,
