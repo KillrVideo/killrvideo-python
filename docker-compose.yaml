@@ -48,7 +48,7 @@ services:
       KAFKA_ADVERTISED_HOST_NAME: localhost
       KAFKA_ADVERTISED_PORT: 9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_CREATE_TOPICS: "topic-kv-videoCreation:1:1:compact,topic-kv-userCreation:1:1:compact,topic-kv-videoRating:1:1:compact"
+      KAFKA_CREATE_TOPICS: "topic-kv-videoCreation:1:1,topic-kv-userCreation:1:1,topic-kv-videoRating:1:1"
     ports:
       - 9092:9092
 
@@ -69,18 +69,18 @@ services:
       KILLRVIDEO_LOGGING_LEVEL: $KILLRVIDEO_LOGGING_LEVEL
 
   # The sample data generator
-  generator:
-    image: killrvideo/killrvideo-generator:1.2.5
-    depends_on:
-    - dse
-    - etcd
-    environment:
-      KILLRVIDEO_ETCD: "etcd:2379"
-      KILLRVIDEO_DSE_USERNAME: $KILLRVIDEO_DSE_USERNAME
-      KILLRVIDEO_DSE_PASSWORD: $KILLRVIDEO_DSE_PASSWORD
-      NODE_ENV: $NODE_ENV
-      KILLRVIDEO_CASSANDRA_REPLICATION: $KILLRVIDEO_CASSANDRA_REPLICATION
-      KILLRVIDEO_LOGGING_LEVEL: $KILLRVIDEO_LOGGING_LEVEL
+  #generator:
+  #  image: killrvideo/killrvideo-generator:1.2.5
+  #  depends_on:
+  #  - dse
+  #  - etcd
+  #  environment:
+  #    KILLRVIDEO_ETCD: "etcd:2379"
+  #    KILLRVIDEO_DSE_USERNAME: $KILLRVIDEO_DSE_USERNAME
+  #    KILLRVIDEO_DSE_PASSWORD: $KILLRVIDEO_DSE_PASSWORD
+  #    NODE_ENV: $NODE_ENV
+  #    KILLRVIDEO_CASSANDRA_REPLICATION: $KILLRVIDEO_CASSANDRA_REPLICATION
+  #    KILLRVIDEO_LOGGING_LEVEL: $KILLRVIDEO_LOGGING_LEVEL
 
   # One instance of DataStax Studio
   studio:
