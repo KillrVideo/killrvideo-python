@@ -31,12 +31,12 @@ class SuggestedVideosService(object):
 
     def get_related_videos(self, video_id, page_size, paging_state):
         # TODO: implement method
-        return
+        return RelatedVideosResponse(video_id=video_id, videos=None, paging_state=None)
 
 
     def get_suggested_for_user(self, user_id, page_size, paging_state):
         # TODO: implement method
-        return
+        return SuggestedVideosResponse(user_id=user_id, videos=None, paging_state=None)
 
 
     def handle_youtube_video_added(self, video_id, user_id, name, description, location, preview_image_location,
