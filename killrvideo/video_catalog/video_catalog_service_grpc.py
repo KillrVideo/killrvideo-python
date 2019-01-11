@@ -1,11 +1,9 @@
 import grpc
 import logging
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, datetime_to_Timestamp, Timestamp_to_datetime
-from video_catalog_service_pb2 import SubmitYouTubeVideoResponse, GetVideoResponse, VideoLocationType, \
+from video_catalog_service_pb2 import SubmitYouTubeVideoResponse, GetVideoResponse, \
     VideoPreview, GetVideoPreviewsResponse, GetLatestVideoPreviewsResponse, GetUserVideoPreviewsResponse
-from video_catalog_events_pb2 import YouTubeVideoAdded
 import video_catalog_service_pb2_grpc
-
 
 def VideoModel_to_GetVideoResponse(video):
     response = GetVideoResponse(video_id=UUID_to_grpc(video.video_id), user_id=UUID_to_grpc(video.user_id),
@@ -91,11 +89,6 @@ class VideoCatalogServiceServicer(video_catalog_service_pb2_grpc.VideoCatalogSer
                                                         description=request.description,
                                                         tags=request.tags,
                                                         you_tube_video_id=request.you_tube_video_id)
-        # TODO: publish YouTubeVideoAdded event
-        #event = YouTubeVideoAdded(video_id=request.video_id, user_id=request.user_id, name=request.name,
-        #                          description=request.description, tags=request.tags,
-        #                          location=request.you_tube_video_id, preview_image_location=None,
-        #                          added_date=None, timestamp=None)
 
         return SubmitYouTubeVideoResponse()
 

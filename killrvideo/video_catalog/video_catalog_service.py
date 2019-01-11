@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from dse.cqlengine import columns
 from dse.cqlengine.models import Model
 from dse.cqlengine.query import BatchQuery
+from video_catalog_events_kafka import VideoCatalogPublisher
 
 YOUTUBE = 0
 UPLOAD = 1
@@ -115,6 +116,7 @@ class VideoCatalogService(object):
 
     def __init__(self, session):
         self.session = session
+        self.video_catalog_publisher = VideoCatalogPublisher()
 
         # Prepared statements for GetLatestVideoPreviews()
         self.latestVideoPreview_startingPointPrepared = \
@@ -151,7 +153,7 @@ class VideoCatalogService(object):
         yyyymmdd = now.strftime('%Y%m%d')
 
         # create and execute batch statement to insert into multiple tables
-        batch_query = BatchQuery()
+        batch_query = BatchQuery(timestamp=now)
         VideosModel.batch(batch_query).create(video_id=video_id, user_id=user_id, name=name, description=description,
                                               location=you_tube_video_id, location_type=YOUTUBE,
                                               preview_image_location=preview_image_location, tags=tags,
@@ -163,6 +165,14 @@ class VideoCatalogService(object):
                                                   name=name, preview_image_location=preview_image_location)
         batch_query.execute()
 
+        # publish YouTubeVideoAdded event
+        self.video_catalog_publisher.publish_youtube_video_added_event(video_id=video_id, user_id=user_id,
+                                                                       name=name,
+                                                                       description=description,
+                                                                       tags=tags,
+                                                                       location=you_tube_video_id,
+                                                                       preview_image_location=preview_image_location,
+                                                                       added_date=now, timestamp=now)
 
     def get_video(self, video_id):
         if not video_id:

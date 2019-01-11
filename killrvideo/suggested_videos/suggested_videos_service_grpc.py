@@ -11,7 +11,8 @@ def VideoPreview_to_SuggestedVideoPreview(video):
 
 
 def RelatedVideos_to_GetRelatedVideosResponse(related_videos):
-    response = GetRelatedVideosResponse(video_id=related_videos.video_id, paging_state=related_videos.paging_state)
+    response = GetRelatedVideosResponse(video_id=UUID_to_grpc(related_videos.video_id),
+                                        paging_state=related_videos.paging_state)
     if isinstance(related_videos.videos, (list,)):    # most preferred way to check if it's list
         response.videos.extend(map(VideoPreview_to_SuggestedVideoPreview,related_videos.videos))
     elif related_videos.videos is not None: # single result
@@ -20,7 +21,8 @@ def RelatedVideos_to_GetRelatedVideosResponse(related_videos):
 
 
 def SuggestedVideos_to_GetSuggestedForUserResponse(suggested_videos):
-    response = GetSuggestedForUserResponse(user_id=suggested_videos.user_id, paging_state=suggested_videos.paging_state)
+    response = GetSuggestedForUserResponse(user_id=UUID_to_grpc(suggested_videos.user_id),
+                                           paging_state=suggested_videos.paging_state)
     if isinstance(suggested_videos.videos, (list,)):    # most preferred way to check if it's list
         response.videos.extend(map(VideoPreview_to_SuggestedVideoPreview,suggested_videos.videos))
     elif suggested_videos.videos is not None: # single result

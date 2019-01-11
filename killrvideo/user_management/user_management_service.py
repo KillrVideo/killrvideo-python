@@ -1,9 +1,10 @@
 from dse.cqlengine import columns
 from dse.cqlengine.models import Model
 from dse.cqlengine.query import LWTException
+from datetime import datetime
 import hashlib
 import validate_email
-
+from user_management_events_kafka import UserManagementPublisher
 
 class UserModel(Model):
     """Model class that maps to the user table"""
@@ -33,7 +34,7 @@ class UserManagementService(object):
     """Provides methods that implement functionality of the UserManagement Service."""
 
     def __init__(self):
-        return
+        self.user_management_publisher = UserManagementPublisher()
 
     def create_user(self, user_id, first_name, last_name, email, password):
         # validate inputs
@@ -52,6 +53,12 @@ class UserManagementService(object):
 
         # insert into users table
         UserModel.create(user_id=user_id, first_name=first_name, last_name=last_name, email=email)
+
+        # Publish UserCreated event
+        self.user_management_publisher.publish_user_created_event(user_id=user_id, first_name=first_name,
+                                                                  last_name=last_name, email=email,
+                                                                  timestamp=datetime.utcnow())
+
 
     def verify_credentials(self, email, password):
         # validate email is not empty or null
