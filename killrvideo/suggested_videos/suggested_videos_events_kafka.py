@@ -76,5 +76,5 @@ class SuggestedVideosConsumer(object):
                                                                  location=video_added.location,
                                                                  preview_image_location=video_added.preview_image_location,
                                                                  tags=video_added.tags,
-                                                                 added_date=video_added.Timestamp_to_datetime(video_added.added_date),
+                                                                 added_date=Timestamp_to_datetime(video_added.added_date),
                                                                  timestamp=Timestamp_to_datetime(video_added.timestamp))
