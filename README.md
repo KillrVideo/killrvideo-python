@@ -25,4 +25,4 @@ Install:
 * ./setup-docker.sh 
 * docker-compose up -d
 * cd killrvideo
-* python __init_.py
+* python __init__.py
