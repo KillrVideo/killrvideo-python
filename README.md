@@ -17,3 +17,4 @@ Dependencies:
 * pip install sortedcontainers
 * pip install python-etcd
 * pip install dse-driver
+* pip install kafka-python
