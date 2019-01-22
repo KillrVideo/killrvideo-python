@@ -5,7 +5,6 @@ from time_uuid import TimeUUID
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, grpc_totimeUUID, TimeUUID_to_grpc
 from comments_service_pb2 import UserComment, CommentOnVideoRequest, CommentOnVideoResponse, GetUserCommentsRequest, GetUserCommentsResponse, GetVideoCommentsRequest, GetVideoCommentsResponse, VideoComment
 import comments_service_pb2_grpc
-from comments_events_pb2 import UserCommentedOnVideo
 
 def CommentsByUserModel_to_GetUserComments(result):
     return UserComment(comment_id=TimeUUID_to_grpc(result.comment_id), 
@@ -50,10 +49,6 @@ class CommentsServiceServicer(comments_service_pb2_grpc.CommentsServiceServicer)
                                                UUID(request.user_id.value), 
                                                UUID (request.comment_id.value), 
                                                request.comment)
-        #Publish UserCommentedOnVideo event
-        event = UserCommentedOnVideo(video_id=request.video_id,
-                                     user_id=request.user_id,
-                                     comment_id=request.comment_id)
         return CommentOnVideoResponse()
 
     def GetUserComments(self, request, context):
