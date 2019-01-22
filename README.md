@@ -18,3 +18,11 @@ Dependencies:
 * pip install python-etcd
 * pip install dse-driver
 * pip install kafka-python
+
+Install:
+* git clone <>
+* cd killrvideo-python
+* ./setup-docker.sh 
+* docker-compose up -d
+* cd killrvideo
+* python __init_.py
