@@ -48,7 +48,7 @@ services:
       KAFKA_ADVERTISED_HOST_NAME: localhost
       KAFKA_ADVERTISED_PORT: 9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_CREATE_TOPICS: "topic-kv-videoCreation:1:1,topic-kv-userCreation:1:1,topic-kv-videoRating:1:1"
+      KAFKA_CREATE_TOPICS: "topic-kv-videoCreation:1:1,topic-kv-userCreation:1:1,topic-kv-videoRating:1:1,topic-kv-commentCreation:1:1"
     ports:
       - 9092:9092
 
