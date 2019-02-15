@@ -3,6 +3,7 @@ import grpc
 import etcd
 import time
 import logging
+import json
 
 from dse.cluster import Cluster, ExecutionProfile, EXEC_PROFILE_DEFAULT
 from dse import ConsistencyLevel
@@ -26,18 +27,21 @@ from suggested_videos.suggested_videos_service import SuggestedVideosService
 from user_management.user_management_service import UserManagementService
 from video_catalog.video_catalog_service import VideoCatalogService
 
-# TODO: replace hardcoded values with properties
-_SERVICE_PORT = "8899"
-_SERVICE_HOST = "10.0.75.1"
-_ETCD_PORT = 2379
-
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
-
 
 def serve():
 
-    service_address = _SERVICE_HOST + ":" + _SERVICE_PORT
-    etcd_client = etcd.Client(host=_SERVICE_HOST, port=_ETCD_PORT)
+    file = open('config.json', 'r')
+    config = json.load(file)
+
+    service_port = config['SERVICE_PORT']
+    service_host = config['SERVICE_HOST']
+    etcd_port = config['ETCD_PORT']
+    contact_points = config['CONTACT_POINTS']
+    default_consistency_level = config['DEFAULT_CONSISTENCY_LEVEL']
+
+    service_address = service_host + ":" + str(service_port)
+    etcd_client = etcd.Client(host=service_host, port=etcd_port)
 
     # Wait for Cassandra (DSE) to be up, aka registered in etcd
     while True:
@@ -49,8 +53,10 @@ def serve():
             time.sleep(10)
 
     # Initialize Cassandra Driver and Mapper
-    profile = ExecutionProfile(consistency_level = ConsistencyLevel.LOCAL_QUORUM)
-    cluster = Cluster(contact_points=['10.0.75.1'], execution_profiles={EXEC_PROFILE_DEFAULT: profile})
+    profile = ExecutionProfile(consistency_level =
+                               ConsistencyLevel.name_to_value[default_consistency_level])
+    cluster = Cluster(contact_points=contact_points,
+                      execution_profiles={EXEC_PROFILE_DEFAULT: profile})
     session = cluster.connect("killrvideo")
     dse.cqlengine.connection.set_session(session)
 
@@ -68,7 +74,7 @@ def serve():
     VideoCatalogServiceServicer(grpc_server, VideoCatalogService(session=session))
 
     # Start GRPC Server
-    grpc_server.add_insecure_port('[::]:' + _SERVICE_PORT)
+    grpc_server.add_insecure_port('[::]:' + str(service_port))
     grpc_server.start()
 
     # Register Services with etcd
