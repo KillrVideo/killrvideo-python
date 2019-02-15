@@ -2,6 +2,7 @@ import logging
 from dse.cqlengine import columns
 from dse.cqlengine.models import Model
 from dse.cqlengine.query import BatchQuery
+from comments_events_kafka import CommentsPublisher
 
 class CommentsByVideoModel(Model):
     """Model class that maps to the comments_by_video table"""
@@ -34,6 +35,8 @@ class CommentsService(object):
     """Provides methods that implement functionality of the Comments Service."""
 
     def __init__(self, session):
+        self.user_comments_publisher = CommentsPublisher()
+
         self.session = session
 
         # Prepared statements for get_user_comments()
@@ -65,6 +68,9 @@ class CommentsService(object):
         CommentsByVideoModel.batch(batch_query).create(video_id=video_id, comment_id=comment_id, user_id=user_id, comment=comment)
         CommentsByUserModel.batch(batch_query).create(user_id=user_id, comment_id=comment_id, video_id=video_id, comment=comment)
         batch_query.execute()
+
+        #Publish UserCommentedOnVideo event
+        self.user_comments_publisher.publish_user_comment_added_event(video_id=video_id, user_id=user_id, comment_id=comment_id)
         return
            
 

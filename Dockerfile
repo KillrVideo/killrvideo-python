@@ -23,7 +23,7 @@ RUN pip install validate-email
 RUN pip install sortedcontainers
 RUN pip install nltk
 RUN python -m nltk.downloader stopwords
-
+RUN pip install kafka-python
 
 # Create app directory
 COPY killrvideo/ /app

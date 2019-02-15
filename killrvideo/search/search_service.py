@@ -3,6 +3,7 @@ import re
 from sortedcontainers import SortedSet
 from dse.cqlengine import columns
 from dse.cqlengine.models import Model
+from dse import ConsistencyLevel
 from nltk.corpus import stopwords
 
 
@@ -55,6 +56,7 @@ class SearchService(object):
 
         bound_statement = self.search_videos_prepared.bind([solr_query])
         bound_statement.fetch_size = page_size
+        bound_statement.consistency_level = ConsistencyLevel.LOCAL_ONE # required for search queries
 
         result_set = None
 
@@ -102,6 +104,7 @@ class SearchService(object):
         # TODO: not sure we're interpreting page size correctly here.
         #  Should it be a limit on our database query, or a limit on the number of terms returned?
         bound_statement.fetch_size = page_size
+        bound_statement.consistency_level = ConsistencyLevel.LOCAL_ONE # required for search queries
 
         result_set = self.session.execute(bound_statement)
 
