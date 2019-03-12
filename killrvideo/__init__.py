@@ -97,4 +97,5 @@ def serve():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('kafka').setLevel(logging.ERROR)
     serve()

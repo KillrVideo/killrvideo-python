@@ -1,4 +1,6 @@
 from suggested_videos_events_kafka import SuggestedVideosConsumer
+from dse_graph import DseGraph
+import logging
 
 class VideoPreview():
     def __init__(self, video_id, added_date, name, preview_image_location, user_id):
@@ -27,6 +29,7 @@ class SuggestedVideosService(object):
     def __init__(self, session):
         self.session = session
         self.suggested_videos_consumer = SuggestedVideosConsumer(self)
+        self.g = DseGraph.traversal_source(session=session, graph_name='killrvideo_video_recommendations')
 
 
     def get_related_videos(self, video_id, page_size, paging_state):
@@ -46,7 +49,16 @@ class SuggestedVideosService(object):
 
 
     def handle_user_created(self, user_id, first_name, last_name, email, timestamp):
-        # TODO: implement method
+
+        logging.debug('SuggestedVideosService:handle_user_created, id is: ' + user_id +
+                      ', first name: ' + first_name + \
+                      ', last name: ' + last_name + ', email: ' + email + \
+                      ', timestamp: ' + timestamp)
+
+        g.addV('user').property('userId', user_id) \
+            .property('email', email) \
+            .property('timestamp', timestamp) \
+            .next()
         return
 
 
