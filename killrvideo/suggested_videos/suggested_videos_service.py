@@ -28,40 +28,46 @@ class SuggestedVideosService(object):
 
     def __init__(self, session):
         self.session = session
+        self.graph = DseGraph.traversal_source(session=self.session, graph_name='killrvideo_video_recommendations')
+        logging.debug('Graph traversal source: ' + str(self.graph) + ' verts' + str(self.graph.V()))
         self.suggested_videos_consumer = SuggestedVideosConsumer(self)
-        self.g = DseGraph.traversal_source(session=session, graph_name='killrvideo_video_recommendations')
-
 
     def get_related_videos(self, video_id, page_size, paging_state):
         # TODO: implement method
         return RelatedVideosResponse(video_id=video_id, videos=None, paging_state=None)
 
-
     def get_suggested_for_user(self, user_id, page_size, paging_state):
         # TODO: implement method
         return SuggestedVideosResponse(user_id=user_id, videos=None, paging_state=None)
 
+    def handle_user_created(self, user_id, first_name, last_name, email, timestamp):
+        logging.debug('SuggestedVideosService:handle_user_created, id is: ' + str(user_id) +
+                      ', first name: ' + first_name +
+                      ', last name: ' + last_name + ', email: ' + email +
+                      ', timestamp: ' + str(timestamp) + ', graph: ' + str(self.graph))
+
+        self.graph.addV('user').property('userId', user_id).property('email', email) \
+            .property('timestamp', timestamp).next()
 
     def handle_youtube_video_added(self, video_id, user_id, name, description, location, preview_image_location,
                                    tags, added_date, timestamp):
+        logging.debug('SuggestedVideosService:handle_youtube_video_added, video ID: ' + str(video_id) +
+                      ', user ID: ' + str(user_id) + ', name: ' + name + ', description: ' + description +
+                      ', location: ' + location + ', preview_image_location: ' + preview_image_location +
+                      ', tags: ' + tags + ', timestamp: ' + str(timestamp))
+
         # TODO: implement method
         return
-
-
-    def handle_user_created(self, user_id, first_name, last_name, email, timestamp):
-
-        logging.debug('SuggestedVideosService:handle_user_created, id is: ' + user_id +
-                      ', first name: ' + first_name + \
-                      ', last name: ' + last_name + ', email: ' + email + \
-                      ', timestamp: ' + timestamp)
-
-        g.addV('user').property('userId', user_id) \
-            .property('email', email) \
-            .property('timestamp', timestamp) \
-            .next()
-        return
-
 
     def handle_user_rated_video(self, video_id, user_id, rating, timestamp):
+
+        logging.debug('SuggestedVideosService:handle_user_rated_video, video id: ' + str(video_id) +
+                      ', user ID: ' + str(user_id) +
+                      ', rating: ' + str(rating) +
+                      ', timestamp: ' + str(timestamp) +
+                      ', session: ' + str(self.session) + ', graph: ' + str(self.graph))
+
         # TODO: implement method
         return
+
+
