@@ -54,9 +54,19 @@ class SuggestedVideosService(object):
         logging.debug('SuggestedVideosService:handle_youtube_video_added, video ID: ' + str(video_id) +
                       ', user ID: ' + str(user_id) + ', name: ' + name + ', description: ' + description +
                       ', location: ' + location + ', preview_image_location: ' + preview_image_location +
-                      ', tags: ' + tags + ', timestamp: ' + str(timestamp))
+                      ', tags: ' + str(tags) + ', timestamp: ' + str(timestamp))
 
-        # TODO: implement method
+        # add Video vertex
+        self.graph.addV('video').property('videoId', video_id)\
+            .property('added_date', added_date)\
+            .property('description', description) \
+            .property('name', name)\
+            .property('preview_image_location', preview_image_location)\
+            .next()
+
+        # TODO: find User vertex and add edge to Video vertex
+
+        # TODO: find vertices for Tags and add edges from Video vertex
         return
 
     def handle_user_rated_video(self, video_id, user_id, rating, timestamp):

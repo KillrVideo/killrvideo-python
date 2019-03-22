@@ -1,5 +1,5 @@
 import logging
-import multiprocessing
+import threading
 from kafka import KafkaConsumer
 from user_management.user_management_events_pb2 import UserCreated
 from video_catalog.video_catalog_events_pb2 import YouTubeVideoAdded
@@ -13,9 +13,9 @@ YOUTUBE_VIDEO_ADDED_TOPIC = 'topic-kv-videoCreation'
 BOOTSTRAP_SERVERS = '10.0.75.1:9092'
 
 
-class SuggestedVideoKafkaConsumer(multiprocessing.Process):
+class SuggestedVideoKafkaConsumer(threading.Thread):
     def __init__(self, suggested_videos_consumer):
-        multiprocessing.Process.__init__(self)
+        threading.Thread.__init__(self)
         self.suggested_videos_consumer = suggested_videos_consumer
 
     def run(self):
