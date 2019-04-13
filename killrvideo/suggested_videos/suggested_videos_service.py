@@ -47,10 +47,8 @@ class SuggestedVideosService(object):
                       ', timestamp: ' + str(timestamp) + ', graph: ' + str(self.graph))
 
         self.graph.addV('user').property('userId', user_id).property('email', email) \
-            .property('timestamp', timestamp).next()
+            .property('added_date', timestamp).next()
 
-        #statement = ...
-        #self.session.execute_graph(statement, [user_id, email, timestamp])
 
     def handle_youtube_video_added(self, video_id, user_id, name, description, location, preview_image_location,
                                    tags, added_date, timestamp):
@@ -69,17 +67,16 @@ class SuggestedVideosService(object):
         logging.debug('video vertex added: ' + str(video))
 
         # find User vertex and add edge to Video vertex
-        self.graph.V().has('userId', user_id).addE('uploaded').to(video) \
-            .property('added_date', added_date).next()
-
-        #TODO: How to handle a user rating the same video multiple times
+        # TODO: this works but read after write seems like a bad practice
+        video = self.graph.V().has('video', 'videoId', video_id)
+        self.graph.V().has('user', 'userId', user_id).addE('uploaded').to(video) \
+            .property('added_date', added_date).iterate()
 
         # TODO: find vertices for Tags and add edges from Video vertex
-
-        self.graph.V(video).addE("taggedWith").to(coalesce(
-            __.V().has("tag", "name", "cassandra"),
-            __.addV("tag").property("name", "cassandra")
-        )).iterate()
+        #self.graph.V(video).addE("taggedWith").to(coalesce(
+        #    __.V().has("tag", "name", "cassandra"),
+        #    __.addV("tag").property("name", "cassandra")
+        #)).iterate()
 
 
     def handle_user_rated_video(self, video_id, user_id, rating, timestamp):
@@ -91,6 +88,6 @@ class SuggestedVideosService(object):
                       ', session: ' + str(self.session) + ', graph: ' + str(self.graph))
 
         # TODO: implement method
-        self.graph.V().has('userId', user_id).addE('rated').to(video) \
-            .property('rating', rating).next()
+        #self.graph.V().has('userId', user_id).addE('rated').to(video) \
+        #    .property('rating', rating).next()
 

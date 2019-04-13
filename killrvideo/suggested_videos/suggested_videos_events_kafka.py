@@ -27,12 +27,15 @@ class SuggestedVideoKafkaConsumer(threading.Thread):
 
         for event in consumer:
             logging.debug(event)
-            if event.topic == USER_CREATED_TOPIC:
-                self.suggested_videos_consumer.process_user_created(event.value)
-            elif event.topic == USER_RATED_VIDEO_TOPIC:
-                self.suggested_videos_consumer.process_user_rated_video(event.value)
-            elif event.topic == YOUTUBE_VIDEO_ADDED_TOPIC:
-                self.suggested_videos_consumer.process_youtube_video_added(event.value)
+            try:
+                if event.topic == USER_CREATED_TOPIC:
+                    self.suggested_videos_consumer.process_user_created(event.value)
+                elif event.topic == USER_RATED_VIDEO_TOPIC:
+                    self.suggested_videos_consumer.process_user_rated_video(event.value)
+                elif event.topic == YOUTUBE_VIDEO_ADDED_TOPIC:
+                    self.suggested_videos_consumer.process_youtube_video_added(event.value)
+            except Exception as e:
+                logging.debug("Error processing event: " + str(e))
 
 
 class SuggestedVideosConsumer(object):
