@@ -91,3 +91,6 @@ class SuggestedVideosService(object):
         #self.graph.V().has('userId', user_id).addE('rated').to(video) \
         #    .property('rating', rating).next()
 
+        video = self.graph.V().has('video', 'videoId', video_id)
+        self.graph.V().has('user', 'userId', user_id).addE('rated').to(video) \
+            .property('rating', rating).iterate()
