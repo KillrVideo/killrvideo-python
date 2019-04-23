@@ -1,5 +1,6 @@
 from suggested_videos_events_kafka import SuggestedVideosConsumer
 from dse_graph import DseGraph
+from gremlin_python.process.graph_traversal import __
 import logging
 
 class VideoPreview():
@@ -73,10 +74,12 @@ class SuggestedVideosService(object):
             .property('added_date', added_date).iterate()
 
         # TODO: find vertices for Tags and add edges from Video vertex
-        #self.graph.V(video).addE("taggedWith").to(coalesce(
-        #    __.V().has("tag", "name", "cassandra"),
-        #    __.addV("tag").property("name", "cassandra")
-        #)).iterate()
+        for tag in tags:
+            logging.debug('adding tag: ' + tag)
+
+            self.graph.V(video).addE("taggedWith").to(__.coalesce(
+                __.V().has("tag", "name", tag),
+                __.addV("tag").property("name", tag).property("added_date", added_date))).iterate()
 
 
     def handle_user_rated_video(self, video_id, user_id, rating, timestamp):
