@@ -58,28 +58,30 @@ class SuggestedVideosService(object):
                       ', location: ' + location + ', preview_image_location: ' + preview_image_location +
                       ', tags: ' + str(tags) + ', timestamp: ' + str(timestamp))
 
-        # add Video vertex
-        video = self.graph.addV('video').property('videoId', video_id)\
-            .property('added_date', added_date)\
+        # Note: building a single traversal, but broken into several steps for readability
+
+        # locate user vertex
+        traversal = self.graph.V().has('user', 'userId', user_id).as_('^user')
+
+        # add video vertex
+        traversal = traversal.addV('video').property('videoId', video_id)\
+            .property('added_date', added_date) \
             .property('description', description) \
-            .property('name', name)\
-            .property('preview_image_location', preview_image_location)\
-            .next()
-        logging.debug('video vertex added: ' + str(video))
+            .property('name', name) \
+            .property('preview_image_location', preview_image_location) \
+            .as_('^video')
 
-        # find User vertex and add edge to Video vertex
-        # TODO: this works but read after write seems like a bad practice
-        video = self.graph.V().has('video', 'videoId', video_id)
-        self.graph.V().has('user', 'userId', user_id).addE('uploaded').to(video) \
-            .property('added_date', added_date).iterate()
+        # add edge from user to video vertex
+        traversal = traversal.addE('uploaded').from_('^user').to('^video').property('added_date', added_date)
 
-        # TODO: find vertices for Tags and add edges from Video vertex
+        # find vertices for tags and add edges from video vertex
         for tag in tags:
-            logging.debug('adding tag: ' + tag)
+            traversal = traversal.addE('taggedWith').from_('^video').to(__.coalesce(
+                __.V().has('tag', 'name', tag),
+                __.addV('tag').property('name', tag).property('tagged_date', added_date)))
 
-            video.addE("taggedWith").to(__.coalesce(
-                __.V().has("tag", "name", tag),
-                __.addV("tag").property("name", tag).property("tagged_date", added_date))).iterate()
+        # execute the traversal
+        traversal.iterate()
 
 
     def handle_user_rated_video(self, video_id, user_id, rating, timestamp):
@@ -87,9 +89,10 @@ class SuggestedVideosService(object):
         logging.debug('SuggestedVideosService:handle_user_rated_video, video id: ' + str(video_id) +
                       ', user ID: ' + str(user_id) +
                       ', rating: ' + str(rating) +
-                      ', timestamp: ' + str(timestamp) +
-                      ', session: ' + str(self.session) + ', graph: ' + str(self.graph))
+                      ', timestamp: ' + str(timestamp))
 
-        video = self.graph.V().has('video', 'videoId', video_id)
-        self.graph.V().has('user', 'userId', user_id).addE('rated').to(video) \
-            .property('rating', rating).iterate()
+        # locate the video and user vertices and add an edge to represent the rating
+        self.graph.V().has('video', 'videoId', video_id).as_('^video') \
+            .has('user', 'userId', user_id).as_('^user') \
+            .addE('rated').from_('^user').to('^video').property('rating', rating) \
+            .iterate()
