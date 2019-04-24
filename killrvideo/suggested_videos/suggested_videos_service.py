@@ -77,9 +77,9 @@ class SuggestedVideosService(object):
         for tag in tags:
             logging.debug('adding tag: ' + tag)
 
-            self.graph.V(video).addE("taggedWith").to(__.coalesce(
+            video.addE("taggedWith").to(__.coalesce(
                 __.V().has("tag", "name", tag),
-                __.addV("tag").property("name", tag).property("added_date", added_date))).iterate()
+                __.addV("tag").property("name", tag).property("tagged_date", added_date))).iterate()
 
 
     def handle_user_rated_video(self, video_id, user_id, rating, timestamp):
