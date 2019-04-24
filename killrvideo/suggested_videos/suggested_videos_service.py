@@ -33,13 +33,16 @@ class SuggestedVideosService(object):
         logging.debug('Graph traversal source: ' + str(self.graph) + ' verts' + str(self.graph.V()))
         self.suggested_videos_consumer = SuggestedVideosConsumer(self)
 
+
     def get_related_videos(self, video_id, page_size, paging_state):
         # TODO: implement method
         return RelatedVideosResponse(video_id=video_id, videos=None, paging_state=None)
 
+
     def get_suggested_for_user(self, user_id, page_size, paging_state):
         # TODO: implement method
         return SuggestedVideosResponse(user_id=user_id, videos=None, paging_state=None)
+
 
     def handle_user_created(self, user_id, first_name, last_name, email, timestamp):
         logging.debug('SuggestedVideosService:handle_user_created, id is: ' + str(user_id) +
@@ -92,7 +95,7 @@ class SuggestedVideosService(object):
                       ', timestamp: ' + str(timestamp))
 
         # locate the video and user vertices and add an edge to represent the rating
-        self.graph.V().has('video', 'videoId', video_id).as_('^video') \
-            .has('user', 'userId', user_id).as_('^user') \
-            .addE('rated').from_('^user').to('^video').property('rating', rating) \
+        self.graph.V().has('user', 'userId', user_id) \
+            .addE('rated').to(__.V().has('video', 'videoId', video_id)) \
+            .property('rating', rating) \
             .iterate()
