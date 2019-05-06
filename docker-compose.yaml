@@ -54,7 +54,7 @@ services:
 
   # Start the KillrVideo web UI on port 3000
   web:
-    image: killrvideo/killrvideo-web:1.2.8
+    image: killrvideo/killrvideo-web:2.1.0
     ports:
     - "3000:3000"
     depends_on:
