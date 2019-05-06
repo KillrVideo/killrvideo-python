@@ -1,6 +1,7 @@
 from suggested_videos_events_kafka import SuggestedVideosConsumer
 from dse_graph import DseGraph
 from gremlin_python.process.graph_traversal import __
+from gremlin_python.process.traversal import gte, neq, within, Scope, Operator, Order, Column
 import logging
 
 class VideoPreview():
@@ -23,9 +24,15 @@ class SuggestedVideosResponse():
         self.videos = videos
         self.paging_state = paging_state
 
+# constants
+MIN_RATING = 4
+NUM_RATINGS_TO_SAMPLE = 1000
+LOCAL_USER_RATINGS_TO_SAMPLE = 5
+NUM_RECOMMENDATIONS = 5
 
 class SuggestedVideosService(object):
     """Provides methods that implement functionality of the Suggested Videos Service."""
+
 
     def __init__(self, session):
         self.session = session
@@ -40,7 +47,46 @@ class SuggestedVideosService(object):
 
 
     def get_suggested_for_user(self, user_id, page_size, paging_state):
-        # TODO: implement method
+
+        # Note: building a single traversal, but broken into several steps for readability
+
+        # Part 1: finding "similar users"
+        # find the vertex for the user
+        # get all of the videos the user watched and store them
+        # go back to our current user
+        # for the video's I rated highly...
+        # what other users rated those videos highly? (this is like saying "what users share my taste")
+        # but don't grab too many, or this won't work OLTP, and "by('rating')" favors the higher ratings
+        # (except the current user)
+
+        traversal = self.graph.V().has('user', 'userId', user_id).as_('^user') \
+            .map(__.out('rated').dedup().fold()).as_("^watchedVideos") \
+            .select("^user") \
+            .outE('rated').has('rating', gte(MIN_RATING)).inV() \
+            .inE('rated').has('rating', gte(MIN_RATING)) \
+            .sample(NUM_RATINGS_TO_SAMPLE).by('rating').outV() \
+            .where(neq("^user"))
+
+        # Part 2: finding videos that were highly rated by similar users
+        # For those users who share my taste, grab N highly rated videos.
+        # Save the rating so we can sum the scores later, and use sack()
+        # because it does not require path information. (as()/select() was slow)
+        # excluding the videos the user has already watched
+        # Filter out the video if for some reason there is no uploaded edge to a user
+        # what are the most popular videos as calculated by the sum of all their ratings
+        traversal = traversal.local(__.outE('rated').has('rating', gte(MIN_RATING)).limit(LOCAL_USER_RATINGS_TO_SAMPLE)) \
+            .sack(Operator.assign).by('rating').inV() \
+            .not_(__.where(within("^watchedVideos"))) \
+            .filter(__.in_('uploaded').hasLabel('user')) \
+            .group().by().by(__.sack().sum())
+
+        # Part 3: now that we have that big map of [video: score], let's order it
+        # then tag on the user vertex of the user who uploaded each video using project()
+        traversal = traversal.order(Scope.local).by(Column.values, Order.decr) \
+            .limit(Scope.local, NUM_RECOMMENDATIONS).select(Column.keys).unfold() \
+            .project('video', 'user').by().by(__.in_('uploaded'))
+
+        traversal.iterate()
         return SuggestedVideosResponse(user_id=user_id, videos=None, paging_state=None)
 
 
