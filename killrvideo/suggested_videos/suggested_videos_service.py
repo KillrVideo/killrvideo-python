@@ -49,27 +49,27 @@ class SuggestedVideosService(object):
 
     def get_suggested_for_user(self, user_id, page_size, paging_state):
 
-        # Note: building a single traversal, but broken into several steps for readability
+        # Note: we're building a single graph traversal, but describing in three parts for readability
 
         # Part 1: finding "similar users"
-        # find the vertex for the user
-        # get all of the videos the user watched and store them
-        # go back to our current user
-        # for the video's I rated highly...
-        # what other users rated those videos highly? (this is like saying "what users share my taste")
-        # but don't grab too many, or this won't work OLTP, and "by('rating')" favors the higher ratings
-        # (except the current user)
-        # Part 2: finding videos that were highly rated by similar users
-        # For those users who share my taste, grab N highly rated videos.
-        # Save the rating so we can sum the scores later, and use sack()
-        # because it does not require path information. (as()/select() was slow)
-        # excluding the videos the user has already watched
-        # Filter out the video if for some reason there is no uploaded edge to a user
-        # what are the most popular videos as calculated by the sum of all their ratings
-        # Part 3: now that we have that big map of [video: score], let's order it
-        # then tag on the user vertex of the user who uploaded each video using project()
+        # - find the vertex for the user
+        # - get all of the videos the user watched and store them
+        # - go back to our current user
+        # - for the video's I rated highly...
+        # - what other users rated those videos highly? (this is like saying "what users share my taste")
+        # - but don't grab too many, or this won't work OLTP, and "by('rating')" favors the higher ratings
+        # - (except the current user)
 
-        user_id = 'ff2c968c-6483-4f89-9724-1a5d204e32f1'
+        # Part 2: finding videos that were highly rated by similar users
+        # - For those users who share my taste, grab N highly rated videos.
+        # - Save the rating so we can sum the scores later, and use sack()
+        # - because it does not require path information. (as()/select() was slow)
+        # - excluding the videos the user has already watched
+        # - Filter out the video if for some reason there is no uploaded edge to a user
+        # - what are the most popular videos as calculated by the sum of all their ratings
+
+        # Part 3: now that we have that big map of [video: score], let's order it
+        # - then grab properties of the video and the user who uploaded each video using project()
 
         traversal = self.graph.V().has('user', 'userId', user_id).as_('^user') \
             .map(__.out('rated').dedup().fold()).as_('^watchedVideos') \
@@ -87,6 +87,7 @@ class SuggestedVideosService(object):
             .project('video', 'video_id', 'added_date', 'name', 'preview_image_location', 'user_id') \
             .by().by('videoId').by('added_date').by('name').by('preview_image_location').by(__.in_('uploaded').values('userId'))
 
+        # TODO: this step needs to be reinserted after .sack and before .filter
         #.not_(__.where(within('^watchedVideos'))) \
 
         logging.debug('Traversal: ' + str(traversal.bytecode))
