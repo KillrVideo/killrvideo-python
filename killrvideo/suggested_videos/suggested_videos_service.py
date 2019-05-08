@@ -98,7 +98,7 @@ class SuggestedVideosService(object):
         for result in results:
             logging.debug('Traversal Result: ' + str(result))
             videos.append(VideoPreview(video_id=result['video_id'],
-                                       added_date=dateutil.parser.parse(result['added_date']),
+                                       added_date=dateutil.parser.parse(result['added_date'], ignoretz=True),
                                        user_id=result['user_id'], name=result['name'],
                                        preview_image_location=result['preview_image_location']))
 
