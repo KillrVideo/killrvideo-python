@@ -3,6 +3,7 @@ from dse_graph import DseGraph
 from gremlin_python.process.graph_traversal import __
 from gremlin_python.process.traversal import gte, neq, within, Scope, Operator, Order, Column
 import logging
+import dateutil.parser
 
 class VideoPreview():
     def __init__(self, video_id, added_date, name, preview_image_location, user_id):
@@ -58,15 +59,6 @@ class SuggestedVideosService(object):
         # what other users rated those videos highly? (this is like saying "what users share my taste")
         # but don't grab too many, or this won't work OLTP, and "by('rating')" favors the higher ratings
         # (except the current user)
-
-        traversal = self.graph.V().has('user', 'userId', user_id).as_('^user') \
-            .map(__.out('rated').dedup().fold()).as_("^watchedVideos") \
-            .select("^user") \
-            .outE('rated').has('rating', gte(MIN_RATING)).inV() \
-            .inE('rated').has('rating', gte(MIN_RATING)) \
-            .sample(NUM_RATINGS_TO_SAMPLE).by('rating').outV() \
-            .where(neq("^user"))
-
         # Part 2: finding videos that were highly rated by similar users
         # For those users who share my taste, grab N highly rated videos.
         # Save the rating so we can sum the scores later, and use sack()
@@ -74,20 +66,43 @@ class SuggestedVideosService(object):
         # excluding the videos the user has already watched
         # Filter out the video if for some reason there is no uploaded edge to a user
         # what are the most popular videos as calculated by the sum of all their ratings
-        traversal = traversal.local(__.outE('rated').has('rating', gte(MIN_RATING)).limit(LOCAL_USER_RATINGS_TO_SAMPLE)) \
-            .sack(Operator.assign).by('rating').inV() \
-            .not_(__.where(within("^watchedVideos"))) \
-            .filter(__.in_('uploaded').hasLabel('user')) \
-            .group().by().by(__.sack().sum())
-
         # Part 3: now that we have that big map of [video: score], let's order it
         # then tag on the user vertex of the user who uploaded each video using project()
-        traversal = traversal.order(Scope.local).by(Column.values, Order.decr) \
-            .limit(Scope.local, NUM_RECOMMENDATIONS).select(Column.keys).unfold() \
-            .project('video', 'user').by().by(__.in_('uploaded'))
 
-        traversal.iterate()
-        return SuggestedVideosResponse(user_id=user_id, videos=None, paging_state=None)
+        user_id = 'ff2c968c-6483-4f89-9724-1a5d204e32f1'
+
+        traversal = self.graph.V().has('user', 'userId', user_id).as_('^user') \
+            .map(__.out('rated').dedup().fold()).as_('^watchedVideos') \
+            .select('^user') \
+            .outE('rated').has('rating', gte(MIN_RATING)).inV() \
+            .inE('rated').has('rating', gte(MIN_RATING)) \
+            .sample(NUM_RATINGS_TO_SAMPLE).by('rating').outV() \
+            .where(neq('^user')) \
+            .local(__.outE('rated').has('rating', gte(MIN_RATING)).limit(LOCAL_USER_RATINGS_TO_SAMPLE)) \
+            .sack(Operator.assign).by('rating').inV() \
+            .filter(__.in_('uploaded').hasLabel('user')) \
+            .group().by().by(__.sack().sum()) \
+            .order(Scope.local).by(Column.values, Order.decr) \
+            .limit(Scope.local, NUM_RECOMMENDATIONS).select(Column.keys).unfold() \
+            .project('video', 'video_id', 'added_date', 'name', 'preview_image_location', 'user_id') \
+            .by().by('videoId').by('added_date').by('name').by('preview_image_location').by(__.in_('uploaded').values('userId'))
+
+        #.not_(__.where(within('^watchedVideos'))) \
+
+        logging.debug('Traversal: ' + str(traversal.bytecode))
+
+        results = traversal.toList()
+        logging.debug('Traversal generated ' + str(len(results)) + ' results')
+
+        videos = list()
+        for result in results:
+            logging.debug('Traversal Result: ' + str(result))
+            videos.append(VideoPreview(video_id=result['video_id'],
+                                       added_date=dateutil.parser.parse(result['added_date']),
+                                       user_id=result['user_id'], name=result['name'],
+                                       preview_image_location=result['preview_image_location']))
+
+        return SuggestedVideosResponse(user_id=user_id, videos=videos, paging_state=None)
 
 
     def handle_user_created(self, user_id, first_name, last_name, email, timestamp):
