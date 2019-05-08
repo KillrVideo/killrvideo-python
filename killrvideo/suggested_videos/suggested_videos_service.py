@@ -44,7 +44,38 @@ class SuggestedVideosService(object):
 
     def get_related_videos(self, video_id, page_size, paging_state):
         # TODO: implement method
-        return RelatedVideosResponse(video_id=video_id, videos=None, paging_state=None)
+
+        # Uses similar algorithm to get_suggested_for_user, but starts with a video instead of a user
+        # find users that watched (rated) this video highly
+        # for those users, grab N highly rated videos and assemble results 
+
+        traversal = self.graph.V().has('video', 'videoId', video_id).as_('^video') \
+            .inE('rated').has('rating', gte(MIN_RATING)) \
+            .sample(NUM_RATINGS_TO_SAMPLE).by('rating').outV() \
+            .where(neq('^video')) \
+            .local(__.outE('rated').has('rating', gte(MIN_RATING)).limit(LOCAL_USER_RATINGS_TO_SAMPLE)) \
+            .sack(Operator.assign).by('rating').inV() \
+            .filter(__.in_('uploaded').hasLabel('user')) \
+            .group().by().by(__.sack().sum()) \
+            .order(Scope.local).by(Column.values, Order.decr) \
+            .limit(Scope.local, NUM_RECOMMENDATIONS).select(Column.keys).unfold() \
+            .project('video', 'video_id', 'added_date', 'name', 'preview_image_location', 'user_id') \
+            .by().by('videoId').by('added_date').by('name').by('preview_image_location').by(__.in_('uploaded').values('userId'))
+
+        logging.debug('Traversal: ' + str(traversal.bytecode))
+
+        results = traversal.toList()
+        logging.debug('Traversal generated ' + str(len(results)) + ' results')
+
+        videos = list()
+        for result in results:
+            logging.debug('Traversal Result: ' + str(result))
+            videos.append(VideoPreview(video_id=result['video_id'],
+                                       added_date=dateutil.parser.parse(result['added_date'], ignoretz=True),
+                                       user_id=result['user_id'], name=result['name'],
+                                       preview_image_location=result['preview_image_location']))
+
+        return RelatedVideosResponse(video_id=video_id, videos=videos, paging_state=None)
 
 
     def get_suggested_for_user(self, user_id, page_size, paging_state):
