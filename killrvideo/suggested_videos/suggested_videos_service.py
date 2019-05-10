@@ -47,20 +47,20 @@ class SuggestedVideosService(object):
 
         # Uses similar algorithm to get_suggested_for_user, but starts with a video instead of a user
         # find users that watched (rated) this video highly
-        # for those users, grab N highly rated videos and assemble results 
+        # for those users, grab N highly rated videos and assemble results
 
         traversal = self.graph.V().has('video', 'videoId', video_id).as_('^video') \
             .inE('rated').has('rating', gte(MIN_RATING)) \
             .sample(NUM_RATINGS_TO_SAMPLE).by('rating').outV() \
-            .where(neq('^video')) \
             .local(__.outE('rated').has('rating', gte(MIN_RATING)).limit(LOCAL_USER_RATINGS_TO_SAMPLE)) \
             .sack(Operator.assign).by('rating').inV() \
+            .where(neq('^video')) \
             .filter(__.in_('uploaded').hasLabel('user')) \
             .group().by().by(__.sack().sum()) \
             .order(Scope.local).by(Column.values, Order.decr) \
             .limit(Scope.local, NUM_RECOMMENDATIONS).select(Column.keys).unfold() \
-            .project('video', 'video_id', 'added_date', 'name', 'preview_image_location', 'user_id') \
-            .by().by('videoId').by('added_date').by('name').by('preview_image_location').by(__.in_('uploaded').values('userId'))
+            .project('video_id', 'added_date', 'name', 'preview_image_location', 'user_id') \
+            .by('videoId').by('added_date').by('name').by('preview_image_location').by(__.in_('uploaded').values('userId'))
 
         logging.debug('Traversal: ' + str(traversal.bytecode))
 
@@ -115,8 +115,8 @@ class SuggestedVideosService(object):
             .group().by().by(__.sack().sum()) \
             .order(Scope.local).by(Column.values, Order.decr) \
             .limit(Scope.local, NUM_RECOMMENDATIONS).select(Column.keys).unfold() \
-            .project('video', 'video_id', 'added_date', 'name', 'preview_image_location', 'user_id') \
-            .by().by('videoId').by('added_date').by('name').by('preview_image_location').by(__.in_('uploaded').values('userId'))
+            .project('video_id', 'added_date', 'name', 'preview_image_location', 'user_id') \
+            .by('videoId').by('added_date').by('name').by('preview_image_location').by(__.in_('uploaded').values('userId'))
 
         # TODO: this step needs to be reinserted after .sack and before .filter
         #.not_(__.where(within('^watchedVideos'))) \
