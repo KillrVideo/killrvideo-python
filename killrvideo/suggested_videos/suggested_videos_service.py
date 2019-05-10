@@ -149,10 +149,13 @@ class SuggestedVideosService(object):
 
     def handle_youtube_video_added(self, video_id, user_id, name, description, location, preview_image_location,
                                    tags, added_date, timestamp):
+        # make sure tags are unique (no duplicates)
+        unique_tags = set(tags)
+
         logging.debug('SuggestedVideosService:handle_youtube_video_added, video ID: ' + str(video_id) +
                       ', user ID: ' + str(user_id) + ', name: ' + name + ', description: ' + description +
                       ', location: ' + location + ', preview_image_location: ' + preview_image_location +
-                      ', tags: ' + str(tags) + ', timestamp: ' + str(timestamp))
+                      ', tags: ' + str(unique_tags) + ', timestamp: ' + str(timestamp))
 
         # Note: building a single traversal, but broken into several steps for readability
 
@@ -171,7 +174,7 @@ class SuggestedVideosService(object):
         traversal = traversal.addE('uploaded').from_('^user').to('^video').property('added_date', added_date)
 
         # find vertices for tags and add edges from video vertex
-        for tag in tags:
+        for tag in unique_tags:
             traversal = traversal.addE('taggedWith').from_('^video').to(__.coalesce(
                 __.V().has('tag', 'name', tag),
                 __.addV('tag').property('name', tag).property('tagged_date', added_date)))
