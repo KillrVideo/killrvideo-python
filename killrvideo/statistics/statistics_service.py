@@ -31,7 +31,15 @@ class StatisticsService(object):
         # filter().all() returns a ModelQuerySet, we iterate over the query set to get the Model instances
         stats_results = VideoPlaybackStatsModel.filter(video_id__in=video_ids).all()
         stats_list = list()
+        results_video_ids = video_ids[:] # make a copy of requested video_ids to make sure we get a result for each
+
         for stats in stats_results:
             logging.debug(stats)
             stats_list.append(stats)
+            results_video_ids.remove(stats.video_id) # got one of our requested videos
+
+        # create zero-count view results for any requested video_id missing from the query results
+        for missing_video_id in results_video_ids:
+            stats_list.append(VideoPlaybackStatsModel(video_id=missing_video_id, views=0))
+
         return stats_list
