@@ -26,7 +26,7 @@ class SuggestedVideosResponse():
         self.paging_state = paging_state
 
 # constants
-MIN_RATING = 2
+MIN_RATING = 3
 NUM_RATINGS_TO_SAMPLE = 1000
 LOCAL_USER_RATINGS_TO_SAMPLE = 5
 NUM_RECOMMENDATIONS = 5
