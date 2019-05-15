@@ -26,7 +26,7 @@ class SuggestedVideosResponse():
         self.paging_state = paging_state
 
 # constants
-MIN_RATING = 4
+MIN_RATING = 2
 NUM_RATINGS_TO_SAMPLE = 1000
 LOCAL_USER_RATINGS_TO_SAMPLE = 5
 NUM_RECOMMENDATIONS = 5
@@ -43,10 +43,26 @@ class SuggestedVideosService(object):
 
 
     def get_related_videos(self, video_id, page_size, paging_state):
-        # TODO: implement method
 
-        # Uses similar algorithm to get_suggested_for_user, but starts with a video instead of a user
-        # find users that watched (rated) this video highly
+        # Note: we're building a single graph traversal, but describing in three parts for readability
+
+        # Part 1: finding "relevant users"
+        # - find the vertex for the video
+        # - what users rated this video highly?
+        # - but don't grab too many, or this won't work OLTP, and "by('rating')" favors the higher ratings
+
+        # Part 2: finding videos that were highly rated by users who liked the source video
+        # - For those users who rated the video highly, grab N highly rated videos.
+        # - Save the rating so we can sum the scores later, and use sack()
+        # - because it does not require path information. (as()/select() was slow)
+        # - excluding the source video
+        # - Filter out videos with no uploaded edge to a user
+        # - what are the most popular videos as calculated by the sum of all their ratings
+
+        # Part 3: now that we have that big map of [video: score], let's order it
+        # - then grab properties of the video and the user who uploaded each video using project()
+
+        #  find users that watched (rated) this video highly
         # for those users, grab N highly rated videos and assemble results
 
         traversal = self.graph.V().has('video', 'videoId', video_id).as_('^video') \
