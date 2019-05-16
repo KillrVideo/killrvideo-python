@@ -17,7 +17,6 @@ ENV KILLRVIDEO_DSE_PASSWORD ${KILLRVIDEO_DSE_PASSWORD}
 RUN pip install dse-driver
 RUN pip install dse-graph  
 RUN pip install protobuf
-RUN pip install grpc
 RUN pip install grpcio
 RUN pip install python-etcd
 RUN pip install time-uuid
