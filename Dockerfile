@@ -1,5 +1,5 @@
 # Dockerfile
-FROM python:3.6
+FROM python:2.7
 
 ARG KILLRVIDEO_DOCKER_IP
 ENV KILLRVIDEO_DOCKER_IP ${KILLRVIDEO_DOCKER_IP}
@@ -16,6 +16,8 @@ ENV KILLRVIDEO_DSE_PASSWORD ${KILLRVIDEO_DSE_PASSWORD}
 # Install app dependencies
 RUN pip install dse-driver
 RUN pip install dse-graph  
+RUN pip install protobuf
+RUN pip install grpc
 RUN pip install grpcio
 RUN pip install python-etcd
 RUN pip install time-uuid
