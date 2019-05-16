@@ -31,7 +31,7 @@ services:
   # configure this as the seed node
   # start with search and graph modes enabled ("-s -g")
   dse:
-    image: datastax/dse-server:6.0.0
+    image: datastax/dse-server
     command: [ -s -g ]
     ports:
     - "9042:9042"
