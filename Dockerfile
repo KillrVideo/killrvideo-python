@@ -30,6 +30,8 @@ RUN pip install kafka-python
 COPY killrvideo/ /app
 WORKDIR /app
 
+ENV PYTHONPATH "${PYTHONPATH}:/${WORKDIR}"
+
 EXPOSE 8899
  
 CMD ["python", "./__init__.py"]
