@@ -5,7 +5,9 @@ import time
 import logging
 import json
 
-from dse.cluster import Cluster, ExecutionProfile, EXEC_PROFILE_DEFAULT
+from dse.cluster import Cluster, ExecutionProfile, EXEC_PROFILE_DEFAULT, EXEC_PROFILE_GRAPH_DEFAULT
+from dse_graph import DseGraph
+
 from dse import ConsistencyLevel
 import dse.cqlengine.connection
 
@@ -55,8 +57,10 @@ def serve():
     # Initialize Cassandra Driver and Mapper
     profile = ExecutionProfile(consistency_level =
                                ConsistencyLevel.name_to_value[default_consistency_level])
+    graph_profile = DseGraph.create_execution_profile('killrvideo_video_recommendations')
     cluster = Cluster(contact_points=contact_points,
-                      execution_profiles={EXEC_PROFILE_DEFAULT: profile})
+                      execution_profiles={EXEC_PROFILE_DEFAULT: profile, EXEC_PROFILE_GRAPH_DEFAULT: graph_profile})
+
     session = cluster.connect("killrvideo")
     dse.cqlengine.connection.set_session(session)
 

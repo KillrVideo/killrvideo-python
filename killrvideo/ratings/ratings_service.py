@@ -2,7 +2,7 @@ from datetime import datetime
 from dse.cqlengine import columns
 from dse.cqlengine.models import Model
 from dse.cqlengine.query import BatchQuery, DoesNotExist
-from ratings_events_kafka import RatingPublisher
+from .ratings_events_kafka import RatingPublisher
 
 class VideoRatingsModel(Model):
     """Model class that maps to the video_ratings table"""

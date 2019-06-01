@@ -1,4 +1,5 @@
 import logging
+import codecs
 import re
 from sortedcontainers import SortedSet
 from dse.cqlengine import columns
@@ -62,7 +63,7 @@ class SearchService(object):
 
         if paging_state:
             # see below where we encode paging state to hex before returning
-            result_set = self.session.execute(bound_statement, paging_state=paging_state.decode('hex'))
+            result_set = self.session.execute(bound_statement, paging_state=codecs.decode(paging_state, 'hex'))
         else:
             result_set = self.session.execute(bound_statement)
 
@@ -84,7 +85,7 @@ class SearchService(object):
 
         if len(results) == page_size:
             # Use hex encoding since paging state is raw bytes that won't encode to UTF-8
-            next_page_state = result_set.paging_state.encode('hex')
+            next_page_state = codecs.encode(result_set.paging_state, 'hex')
 
         return SearchVideoResults(query=query, paging_state=next_page_state, videos=results)
 

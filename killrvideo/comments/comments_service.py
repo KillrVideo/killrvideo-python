@@ -1,8 +1,9 @@
 import logging
+import codecs
 from dse.cqlengine import columns
 from dse.cqlengine.models import Model
 from dse.cqlengine.query import BatchQuery
-from comments_events_kafka import CommentsPublisher
+from .comments_events_kafka import CommentsPublisher
 
 class CommentsByVideoModel(Model):
     """Model class that maps to the comments_by_video table"""
@@ -96,7 +97,7 @@ class CommentsService(object):
         
         if paging_state:
             # see below where we encode paging state to hex before returning
-            result_set = self.session.execute(bound_statement, paging_state=paging_state.decode('hex'))
+            result_set = self.session.execute(bound_statement, paging_state=codecs.decode(paging_state, 'hex'))
         else:
             result_set = self.session.execute(bound_statement)
 
@@ -118,7 +119,7 @@ class CommentsService(object):
 
         if len(results) == page_size:
             # Use hex encoding since paging state is raw bytes that won't encode to UTF-8
-            next_page_state = result_set.paging_state.encode('hex')
+            next_page_state = codecs.encode(result_set.paging_state, 'hex')
         return GetUserComments(paging_state=next_page_state, comments=results)
 
     def get_video_comments(self, video_id, page_size, starting_comment_id, paging_state):
@@ -143,7 +144,7 @@ class CommentsService(object):
 
         if paging_state:
             # see below where we encode paging state to hex before returning
-            result_set = self.session.execute(bound_statement, paging_state=paging_state.decode('hex'))
+            result_set = self.session.execute(bound_statement, paging_state=codecs.decode(paging_state, 'hex'))
         else:
             result_set = self.session.execute(bound_statement)
 
@@ -165,6 +166,6 @@ class CommentsService(object):
 
         if len(results) == page_size:
             # Use hex encoding since paging state is raw bytes that won't encode to UTF-8
-            next_page_state = result_set.paging_state.encode('hex')
+            next_page_state = codecs.encode(result_set.paging_state, 'hex')
         return GetVideoComments(paging_state=next_page_state, comments=results)
 
