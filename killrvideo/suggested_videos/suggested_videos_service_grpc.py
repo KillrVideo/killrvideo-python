@@ -1,6 +1,6 @@
 import logging
-from .suggested_videos_service_pb2 import GetRelatedVideosResponse, GetSuggestedForUserResponse, SuggestedVideoPreview
-from . import suggested_videos_service_pb2_grpc
+from suggested_videos_service_pb2 import GetRelatedVideosResponse, GetSuggestedForUserResponse, SuggestedVideoPreview
+import suggested_videos_service_pb2_grpc
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, datetime_to_Timestamp
 
 def VideoPreview_to_SuggestedVideoPreview(video):

@@ -1,6 +1,6 @@
 import logging
-from .statistics_service_pb2 import RecordPlaybackStartedResponse, GetNumberOfPlaysResponse, PlayStats
-from . import statistics_service_pb2_grpc
+from statistics_service_pb2 import RecordPlaybackStartedResponse, GetNumberOfPlaysResponse, PlayStats
+import statistics_service_pb2_grpc
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID
 
 
@@ -37,7 +37,7 @@ class StatisticsServiceServicer(statistics_service_pb2_grpc.StatisticsServiceSer
         """
         logging.debug(">>> StatisticsService:GetNumberOfPlays: ")
         logging.debug(request)
-        result = self.statistics_service.get_number_of_plays(list(map(grpc_to_UUID, request.video_ids)))
+        result = self.statistics_service.get_number_of_plays(map(grpc_to_UUID, request.video_ids))
         return VideoPlaybackStatsModelList_to_GetNumberOfPlaysResponse(result)
 
 

@@ -1,5 +1,6 @@
+import logging
 from kafka import KafkaProducer
-from .comments_events_pb2 import UserCommentedOnVideo
+from comments_events_pb2 import UserCommentedOnVideo
 from common.common_types_conversions import UUID_to_grpc, datetime_to_Timestamp, TimeUUID_to_grpc
 
 USER_COMMENT_ADDED_TOPIC = 'topic-kv-commentCreation'

@@ -1,6 +1,6 @@
 import logging
-from .search_service_pb2 import SearchVideosResponse, GetQuerySuggestionsResponse, SearchResultsVideoPreview
-from . import search_service_pb2_grpc
+from search_service_pb2 import SearchVideosResponse, GetQuerySuggestionsResponse, SearchResultsVideoPreview
+import search_service_pb2_grpc
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, datetime_to_Timestamp
 
 def Video_to_SearchResultsVideoPreview(video):

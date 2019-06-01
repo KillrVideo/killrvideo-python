@@ -1,10 +1,9 @@
 import logging
-#import codecs
 from datetime import datetime, timedelta
 from dse.cqlengine import columns
 from dse.cqlengine.models import Model
 from dse.cqlengine.query import BatchQuery
-from .video_catalog_events_kafka import VideoCatalogPublisher
+from video_catalog_events_kafka import VideoCatalogPublisher
 
 YOUTUBE = 0
 UPLOAD = 1
@@ -188,7 +187,7 @@ class VideoCatalogService(object):
 
         # see: https://datastax.github.io/python-driver/cqlengine/queryset.html#retrieving-objects-with-filters
         # filter().all() returns a ModelQuerySet, we iterate over the query set to get the Model instances
-        video_results = VideosModel.filter(video_id__in=list(video_ids)).all()
+        video_results = VideosModel.filter(video_id__in=video_ids).all()
         videos = list()
         for video in video_results:
             videos.append(video)
@@ -210,12 +209,10 @@ class VideoCatalogService(object):
         buckets = custom_paging_state.buckets
         bucket_index = custom_paging_state.current_bucket
         # see below where we encode paging state to hex before returning
-        #cassandra_paging_state = codecs.decode(custom_paging_state.cassandra_paging_state, 'hex')
-        cassandra_paging_state = custom_paging_state.cassandra_paging_state
-
+        cassandra_paging_state = custom_paging_state.cassandra_paging_state.decode('hex')
 
         logging.debug('Custom paging state is: buckets: ' + str(len(buckets)) + ' bucket index: ' + str(bucket_index) + \
-              ' cassandra paging state: ' + str(cassandra_paging_state))
+              ' cassandra paging state: ' + cassandra_paging_state)
 
         while bucket_index < len(buckets):
 
@@ -267,8 +264,7 @@ class VideoCatalogService(object):
             logging.debug('results size is: ' + str(len(results)) + ' request.getPageSize() is : ' + str(page_size))
             if len(results) == page_size:
                 # Use hex encoding since paging state is raw bytes that won't encode to UTF-8
-                # next_cassandra_paging_state = codecs.encode(result_set.paging_state, 'hex')
-                next_cassandra_paging_state = str(result_set.paging_state)
+                next_cassandra_paging_state = result_set.paging_state.encode('hex')
 
                 if next_cassandra_paging_state:
                     logging.debug('results size == page size')
@@ -313,7 +309,7 @@ class VideoCatalogService(object):
 
         if paging_state:
             # see below where we encode paging state to hex before returning
-            result_set = self.session.execute(bound_statement, paging_state=codecs.decode(paging_state, 'hex'))
+            result_set = self.session.execute(bound_statement, paging_state=paging_state.decode('hex'))
         else:
             result_set = self.session.execute(bound_statement)
 
@@ -336,7 +332,7 @@ class VideoCatalogService(object):
 
         if len(results) == page_size:
             # Use hex encoding since paging state is raw bytes that won't encode to UTF-8
-            next_page_state = codecs.encode(result_set.paging_state, 'hex')
+            next_page_state = result_set.paging_state.encode('hex')
 
         return UserVideoPreviews(paging_state=next_page_state, videos=results)
 

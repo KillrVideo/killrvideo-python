@@ -1,6 +1,7 @@
 import logging
-from .ratings_service_pb2 import RateVideoResponse, GetRatingResponse, GetUserRatingResponse
-from . import ratings_service_pb2_grpc
+from ratings_service_pb2 import RateVideoResponse, GetRatingResponse, GetUserRatingResponse
+from ratings_events_pb2 import UserRatedVideo
+import ratings_service_pb2_grpc
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID
 
 

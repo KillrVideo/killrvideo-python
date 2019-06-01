@@ -1,6 +1,6 @@
 import logging
 from kafka import KafkaProducer
-from .video_catalog_events_pb2 import YouTubeVideoAdded
+from video_catalog_events_pb2 import YouTubeVideoAdded
 from common.common_types_conversions import UUID_to_grpc, datetime_to_Timestamp
 
 YOUTUBE_VIDEO_ADDED_TOPIC = 'topic-kv-videoCreation'

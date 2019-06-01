@@ -29,9 +29,9 @@ class StatisticsService(object):
 
         # see: https://datastax.github.io/python-driver/cqlengine/queryset.html#retrieving-objects-with-filters
         # filter().all() returns a ModelQuerySet, we iterate over the query set to get the Model instances
-        stats_results = VideoPlaybackStatsModel.filter(video_id__in=list(video_ids)).all()
+        stats_results = VideoPlaybackStatsModel.filter(video_id__in=video_ids).all()
         stats_list = list()
-        results_video_ids = video_ids.copy() # make a copy of requested video_ids to make sure we get a result for each
+        results_video_ids = video_ids[:] # make a copy of requested video_ids to make sure we get a result for each
 
         for stats in stats_results:
             logging.debug(stats)

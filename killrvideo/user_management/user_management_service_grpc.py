@@ -1,8 +1,8 @@
 import logging
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID
-from .user_management_service_pb2 import CreateUserResponse, VerifyCredentialsResponse, GetUserProfileResponse, \
+from user_management_service_pb2 import CreateUserResponse, VerifyCredentialsResponse, GetUserProfileResponse, \
     UserProfile
-from . import user_management_service_pb2_grpc
+import user_management_service_pb2_grpc
 
 
 def UserModel_to_UserProfile(user):
@@ -54,7 +54,7 @@ class UserManagementServiceServicer(user_management_service_pb2_grpc.UserManagem
         """
         logging.debug(">>> UserManagementService:GetUserProfile: ")
         logging.debug(request)
-        result = self.user_management_service.get_user_profile(list(map(grpc_to_UUID,request.user_ids)))
+        result = self.user_management_service.get_user_profile(map(grpc_to_UUID,request.user_ids))
         logging.debug(result)
         return UserModelList_to_GetUserProfileResponse(result)
 

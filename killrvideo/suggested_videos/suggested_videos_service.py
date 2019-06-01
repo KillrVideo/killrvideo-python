@@ -1,8 +1,9 @@
-from .suggested_videos_events_kafka import SuggestedVideosConsumer
+from suggested_videos_events_kafka import SuggestedVideosConsumer
 from dse_graph import DseGraph
 from gremlin_python.process.graph_traversal import __
 from gremlin_python.process.traversal import gte, neq, within, Scope, Operator, Order, Column
 import logging
+import dateutil.parser
 
 class VideoPreview():
     def __init__(self, video_id, added_date, name, preview_image_location, user_id):
@@ -86,7 +87,7 @@ class SuggestedVideosService(object):
         for result in results:
             logging.debug('Traversal Result: ' + str(result))
             videos.append(VideoPreview(video_id=result['video_id'],
-                                       added_date=result['added_date'],
+                                       added_date=dateutil.parser.parse(result['added_date'], ignoretz=True),
                                        user_id=result['user_id'], name=result['name'],
                                        preview_image_location=result['preview_image_location']))
 
@@ -145,7 +146,7 @@ class SuggestedVideosService(object):
         for result in results:
             logging.debug('Traversal Result: ' + str(result))
             videos.append(VideoPreview(video_id=result['video_id'],
-                                       added_date=result['added_date'],
+                                       added_date=dateutil.parser.parse(result['added_date'], ignoretz=True),
                                        user_id=result['user_id'], name=result['name'],
                                        preview_image_location=result['preview_image_location']))
 

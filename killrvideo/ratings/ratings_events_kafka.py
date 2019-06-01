@@ -1,6 +1,6 @@
 import logging
 from kafka import KafkaProducer
-from .ratings_events_pb2 import UserRatedVideo
+from ratings_events_pb2 import UserRatedVideo
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, datetime_to_Timestamp, Timestamp_to_datetime
 
 USER_RATED_VIDEO_TOPIC = 'topic-kv-videoRating'
@@ -18,7 +18,7 @@ class RatingPublisher(object):
                                rating_timestamp=datetime_to_Timestamp(timestamp))
 
         serialized_event = event.SerializeToString()
-        #logging.debug('(' + str(type(serialized_event)) + ') ' + str(serialized_event))
+        logging.debug('(' + str(type(serialized_event)) + ') ' + serialized_event)
 
         self.producer.send(topic=USER_RATED_VIDEO_TOPIC, value=serialized_event)
 

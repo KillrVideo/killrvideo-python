@@ -4,7 +4,7 @@ from dse.cqlengine.query import LWTException
 from datetime import datetime
 import hashlib
 import validate_email
-from .user_management_events_kafka import UserManagementPublisher
+from user_management_events_kafka import UserManagementPublisher
 
 class UserModel(Model):
     """Model class that maps to the user table"""
@@ -26,7 +26,7 @@ class UserCredentialsModel(Model):
 
 def trim_and_hash_password(password):
     md5_hashlib = hashlib.md5()
-    md5_hashlib.update(password.strip().encode('utf-8'))
+    md5_hashlib.update(password.strip())
     return md5_hashlib.hexdigest()
 
 
@@ -83,7 +83,7 @@ class UserManagementService(object):
 
         # see: https://datastax.github.io/python-driver/cqlengine/queryset.html#retrieving-objects-with-filters
         # filter().all() returns a ModelQuerySet, we iterate over the query set to get the Model instances
-        user_results = UserModel.filter(user_id__in=list(user_ids)).all()
+        user_results = UserModel.filter(user_id__in=user_ids).all()
         users = list()
         for user in user_results:
             users.append(user)
