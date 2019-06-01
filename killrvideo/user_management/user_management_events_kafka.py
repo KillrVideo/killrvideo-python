@@ -1,6 +1,6 @@
 import logging
 from kafka import KafkaProducer
-from user_management_events_pb2 import UserCreated
+from .user_management_events_pb2 import UserCreated
 from common.common_types_conversions import UUID_to_grpc, datetime_to_Timestamp
 
 USER_CREATED_TOPIC = 'topic-kv-userCreation'

@@ -1,4 +1,4 @@
-from suggested_videos_events_kafka import SuggestedVideosConsumer
+from .suggested_videos_events_kafka import SuggestedVideosConsumer
 from dse_graph import DseGraph
 from gremlin_python.process.graph_traversal import __
 from gremlin_python.process.traversal import gte, neq, within, Scope, Operator, Order, Column

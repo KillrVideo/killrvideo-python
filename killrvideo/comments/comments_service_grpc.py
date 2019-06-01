@@ -1,10 +1,8 @@
-import grpc
 import logging
 from uuid import UUID
-from time_uuid import TimeUUID
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, grpc_totimeUUID, TimeUUID_to_grpc
-from comments_service_pb2 import UserComment, CommentOnVideoRequest, CommentOnVideoResponse, GetUserCommentsRequest, GetUserCommentsResponse, GetVideoCommentsRequest, GetVideoCommentsResponse, VideoComment
-import comments_service_pb2_grpc
+from .comments_service_pb2 import UserComment, CommentOnVideoResponse, GetUserCommentsResponse, GetVideoCommentsResponse, VideoComment
+from . import comments_service_pb2_grpc
 
 def CommentsByUserModel_to_GetUserComments(result):
     return UserComment(comment_id=TimeUUID_to_grpc(result.comment_id), 
