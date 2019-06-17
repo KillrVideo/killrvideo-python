@@ -1,4 +1,6 @@
 .idea
 */.idea/*
+/venv
+*.iml
 .env
 *.pyc
