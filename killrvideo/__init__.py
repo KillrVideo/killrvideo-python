@@ -4,9 +4,11 @@ import etcd
 import time
 import logging
 import json
+import os
 
 from dse.cluster import Cluster, ExecutionProfile, EXEC_PROFILE_DEFAULT, EXEC_PROFILE_GRAPH_DEFAULT
 from dse_graph import DseGraph
+from dse.auth import PlainTextAuthProvider
 
 from dse import ConsistencyLevel
 import dse.cqlengine.connection
@@ -33,6 +35,9 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 def serve():
 
+    dse_username = os.getenv('KILLRVIDEO_DSE_USERNAME')
+    dse_password = os.getenv('KILLRVIDEO_DSE_PASSWORD')
+
     file = open('config.json', 'r')
     config = json.load(file)
 
@@ -58,8 +63,14 @@ def serve():
     profile = ExecutionProfile(consistency_level =
                                ConsistencyLevel.name_to_value[default_consistency_level])
     graph_profile = DseGraph.create_execution_profile('killrvideo_video_recommendations')
+
+    auth_provider = None
+    if dse_username:
+        auth_provider = PlainTextAuthProvider(username=dse_username, password=dse_password)
+
     cluster = Cluster(contact_points=contact_points,
-                      execution_profiles={EXEC_PROFILE_DEFAULT: profile, EXEC_PROFILE_GRAPH_DEFAULT: graph_profile})
+                      execution_profiles={EXEC_PROFILE_DEFAULT: profile, EXEC_PROFILE_GRAPH_DEFAULT: graph_profile},
+                      auth_provider = auth_provider)
 
     session = cluster.connect("killrvideo")
     dse.cqlengine.connection.set_session(session)
