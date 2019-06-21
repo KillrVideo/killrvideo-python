@@ -9,8 +9,8 @@ import os
 from dse.cluster import Cluster, ExecutionProfile, EXEC_PROFILE_DEFAULT, EXEC_PROFILE_GRAPH_DEFAULT
 from dse_graph import DseGraph
 from dse.auth import PlainTextAuthProvider
-
 from dse import ConsistencyLevel
+from dse.policies import TokenAwarePolicy, DCAwareRoundRobinPolicy
 import dse.cqlengine.connection
 
 from comments.comments_service_grpc import CommentsServiceServicer
@@ -60,8 +60,9 @@ def serve():
             time.sleep(10)
 
     # Initialize Cassandra Driver and Mapper
-    profile = ExecutionProfile(consistency_level =
-                               ConsistencyLevel.name_to_value[default_consistency_level])
+    load_balancing_policy = TokenAwarePolicy(DCAwareRoundRobinPolicy())
+    profile = ExecutionProfile(consistency_level=ConsistencyLevel.name_to_value[default_consistency_level],
+                               load_balancing_policy=load_balancing_policy)
     graph_profile = DseGraph.create_execution_profile('killrvideo_video_recommendations')
 
     auth_provider = None
