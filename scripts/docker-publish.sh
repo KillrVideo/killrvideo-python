@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This script assumes the following environment variables are present
 #
