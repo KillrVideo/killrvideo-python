@@ -10,7 +10,7 @@ class VideoCatalogPublisher(object):
     """Provides methods that publish events associated with the Video Catalog Service."""
 
     def __init__(self):
-        self.producer = KafkaProducer(bootstrap_servers=os.getenv('KILLRVIDEO_KAFKA', 'kafka:9092'),
+        self.producer = KafkaProducer(bootstrap_servers=os.getenv('KILLRVIDEO_KAFKA', 'kafka'),
                                       client_id='killrvideo-python:VideoCatalogService')
 
 
