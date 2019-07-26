@@ -5,10 +5,10 @@ import logging
 import json
 import os
 
-from dse.cluster import Cluster, ExecutionProfile, EXEC_PROFILE_DEFAULT, EXEC_PROFILE_GRAPH_DEFAULT
-from dse_graph import DseGraph
+from dse import ConsistencyLevel
 from dse.auth import PlainTextAuthProvider
-from dse import ConsistencyLevel, UnresolvableContactPoints
+from dse.cluster import Cluster, ExecutionProfile, EXEC_PROFILE_DEFAULT, EXEC_PROFILE_GRAPH_DEFAULT, NoHostAvailable
+from dse_graph import DseGraph
 from dse.policies import TokenAwarePolicy, DCAwareRoundRobinPolicy
 import dse.cqlengine.connection
 
@@ -36,7 +36,7 @@ def serve():
 
     dse_username = os.getenv('KILLRVIDEO_DSE_USERNAME')
     dse_password = os.getenv('KILLRVIDEO_DSE_PASSWORD')
-    dse_contact_points = os.getenv('KILLRVIDEO_DSE_CONTACT_POINTS', 'dse')
+    dse_contact_points = os.getenv('KILLRVIDEO_DSE_CONTACT_POINTS', 'dse').split(',')
     service_port = os.getenv('KILLRVIDEO_SERVICE_PORT', '50101')
 
     file = open('config.json', 'r')
@@ -55,18 +55,16 @@ def serve():
         auth_provider = PlainTextAuthProvider(username=dse_username, password=dse_password)
 
     # Wait for Cassandra (DSE) to be up
-    cluster = None
-    while not cluster:
+    session = None
+    while not session:
         try:
-            cluster = Cluster(contact_points=dse_contact_points.split(','),
-                              execution_profiles={EXEC_PROFILE_DEFAULT: profile,
-                                                  EXEC_PROFILE_GRAPH_DEFAULT: graph_profile},
-                              auth_provider = auth_provider)
-        except UnresolvableContactPoints:
+            session = Cluster(contact_points=dse_contact_points,
+                              execution_profiles={EXEC_PROFILE_DEFAULT: profile, EXEC_PROFILE_GRAPH_DEFAULT: graph_profile},
+                              auth_provider = auth_provider).connect("killrvideo")
+        except (NoHostAvailable):
             logging.info('Waiting for Cassandra (DSE) to be available')
             time.sleep(10)
 
-    session = cluster.connect("killrvideo")
     dse.cqlengine.connection.set_session(session)
 
     # Initialize GRPC Server
