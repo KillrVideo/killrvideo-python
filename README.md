@@ -15,7 +15,7 @@ Install and run:
     * `python3 -m venv venv`
     * `source venv/bin/activate`
 * Run supporting infrastructure using Docker
-    * `./setup-docker.sh` 
-    * `docker-compose up -d`
+    * See the instructions in the [killrvideo-docker-common][https://github.com/KillrVideo/killrvideo-docker-common] repository for running the supporting infrastructure 
+    * The documentation describes an option to run the KillrVideo python services in a Docker container
 * Run the Python KillrVideo services
     * `python killrvideo/__init__.py`
