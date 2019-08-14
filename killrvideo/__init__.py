@@ -65,6 +65,14 @@ def serve():
             logging.info('Waiting for Cassandra (DSE) to be available')
             time.sleep(10)
 
+    # Additional retry loop to check if dummy keyspace exists
+    while True:
+        logging.info('Checking for schema to be created...')
+        result = session.execute('SELECT keyspace_name FROM system_schema.keyspaces WHERE keyspace_name=\'kv_init_done\'')
+        if result.one(): # any result indicates keyspace has been created
+            break
+        time.sleep(10)
+
     dse.cqlengine.connection.set_session(session)
 
     # Initialize GRPC Server
