@@ -17,7 +17,7 @@ class SuggestedVideoKafkaConsumer(threading.Thread):
         self.suggested_videos_consumer = suggested_videos_consumer
 
     def run(self):
-        consumer = KafkaConsumer(bootstrap_servers=os.getenv('KILLRVIDEO_KAFKA', 'kafka'),
+        consumer = KafkaConsumer(bootstrap_servers=os.getenv('KILLRVIDEO_KAFKA_BOOTSTRAP_SERVERS', 'kafka'),
                                  client_id='killrvideo-python:SuggestedVideosService',
                                  fetch_max_wait_ms=10000) # poll every 10 seconds for new events
 
