@@ -23,6 +23,7 @@ Running Python services in Docker:
 * Run supporting infrastructure using Docker
     * `docker-compose -f docker-compose-backend-external.yaml up -d`
 * Run the Python services
+    * Set the environment variables `KILLRVIDEO_DSE_CONTACT_POINTS` and `KILLRVIDEO_KAFKA_BOOTSTRAP_SERVERS` to point to localhost (`127.0.0.1`)
     * `python killrvideo/__init__.py`
 
 For more advanced Docker configuration options including metrics, volume storage and OpsCenter, see the [killrvideo-docker-common](https://github.com/KillrVideo/killrvideo-docker-common) repository  
