@@ -19,12 +19,13 @@ Running Python services in Docker:
 * Run the services and supporting infrastructure in Docker
     * `docker-compose up -d`
     
-(Alternate) Running the Python Services locally:   
+(Alternate) Running the Python Services on the host (not in docker):   
 * Run supporting infrastructure using Docker
-    * `docker-compose -f docker-compose-backend-external.yaml up -d`
+    * `scripts/run-docker-backend-exernal.sh`
+    * Note this script makes use of the custom compose file `scripts/docker-compose-backend-external.yaml`, which references the environment variable `KILLRVIDEO_BACKEND`. The script sets this to the host IP.
 * Run the Python services
-    * Set the environment variables `KILLRVIDEO_DSE_CONTACT_POINTS` and `KILLRVIDEO_KAFKA_BOOTSTRAP_SERVERS` to point to localhost (`127.0.0.1`)
+    * In your IDE or shell, set the environment variables `KILLRVIDEO_DSE_CONTACT_POINTS` and `KILLRVIDEO_KAFKA_BOOTSTRAP_SERVERS` to point to localhost (`127.0.0.1`)
     * `python killrvideo/__init__.py`
 
-For more advanced Docker configuration options including metrics, volume storage and OpsCenter, see the [killrvideo-docker-common](https://github.com/KillrVideo/killrvideo-docker-common) repository  
+For more advanced Docker configuration options including metrics, volume storage and OpsCenter, see the [killrvideo-docker-common](https://github.com/KillrVideo/killrvideo-docker-common) repository.  
 

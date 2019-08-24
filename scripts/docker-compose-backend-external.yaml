@@ -17,6 +17,8 @@ services:
       - "3000:3000" # Exposes port to be available externally
     environment:
       KILLRVIDEO_LOGGING_LEVEL: debug # More logging
+    extra_hosts:
+      - backend:$KILLRVIDEO_BACKEND
 
   # Datastax Studio provides convenient web interface to work directly with DataStax Enterprise
   studio:  
@@ -55,6 +57,8 @@ services:
     image: killrvideo/killrvideo-generator:3.0.1
     environment:
       KILLRVIDEO_LOGGING_LEVEL: debug # More logging
+    extra_hosts:
+      - backend:$KILLRVIDEO_BACKEND
 
   # Ensure consistency in Kafka World
   zookeeper:
@@ -69,7 +73,7 @@ services:
       - zookeeper
     environment:
       KAFKA_LISTENERS: PLAINTEXT://:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://$KILLRVIDEO_BACKEND:9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_CREATE_TOPICS: "topic-kv-videoCreation:1:1,topic-kv-userCreation:1:1,topic-kv-videoRating:1:1,topic-kv-commentCreation:1:1"
     ports:
