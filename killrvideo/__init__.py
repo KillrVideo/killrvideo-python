@@ -1,15 +1,14 @@
 from concurrent import futures
 import grpc
-import etcd
 import time
 import logging
 import json
 import os
 
-from dse.cluster import Cluster, ExecutionProfile, EXEC_PROFILE_DEFAULT, EXEC_PROFILE_GRAPH_DEFAULT
-from dse_graph import DseGraph
-from dse.auth import PlainTextAuthProvider
 from dse import ConsistencyLevel
+from dse.auth import PlainTextAuthProvider
+from dse.cluster import Cluster, ExecutionProfile, EXEC_PROFILE_DEFAULT, EXEC_PROFILE_GRAPH_DEFAULT, NoHostAvailable
+from dse_graph import DseGraph
 from dse.policies import TokenAwarePolicy, DCAwareRoundRobinPolicy
 import dse.cqlengine.connection
 
@@ -37,27 +36,13 @@ def serve():
 
     dse_username = os.getenv('KILLRVIDEO_DSE_USERNAME')
     dse_password = os.getenv('KILLRVIDEO_DSE_PASSWORD')
+    dse_contact_points = os.getenv('KILLRVIDEO_DSE_CONTACT_POINTS', 'dse').split(',')
+    service_port = os.getenv('KILLRVIDEO_SERVICE_PORT', '50101')
 
     file = open('config.json', 'r')
     config = json.load(file)
 
-    service_port = config['SERVICE_PORT']
-    service_host = config['SERVICE_HOST']
-    etcd_port = config['ETCD_PORT']
-    contact_points = config['CONTACT_POINTS']
     default_consistency_level = config['DEFAULT_CONSISTENCY_LEVEL']
-
-    service_address = service_host + ":" + str(service_port)
-    etcd_client = etcd.Client(host=service_host, port=etcd_port)
-
-    # Wait for Cassandra (DSE) to be up, aka registered in etcd
-    while True:
-        try:
-            etcd_client.read('/killrvideo/services/cassandra')
-            break # if we get here, Cassandra is registered and should be available
-        except etcd.EtcdKeyNotFound:
-            logging.info('Waiting for Cassandra to be registered in etcd, sleeping 10s')
-            time.sleep(10)
 
     # Initialize Cassandra Driver and Mapper
     load_balancing_policy = TokenAwarePolicy(DCAwareRoundRobinPolicy())
@@ -69,11 +54,25 @@ def serve():
     if dse_username:
         auth_provider = PlainTextAuthProvider(username=dse_username, password=dse_password)
 
-    cluster = Cluster(contact_points=contact_points,
-                      execution_profiles={EXEC_PROFILE_DEFAULT: profile, EXEC_PROFILE_GRAPH_DEFAULT: graph_profile},
-                      auth_provider = auth_provider)
+    # Wait for Cassandra (DSE) to be up
+    session = None
+    while not session:
+        try:
+            session = Cluster(contact_points=dse_contact_points,
+                              execution_profiles={EXEC_PROFILE_DEFAULT: profile, EXEC_PROFILE_GRAPH_DEFAULT: graph_profile},
+                              auth_provider = auth_provider).connect("killrvideo")
+        except (NoHostAvailable):
+            logging.info('Waiting for Cassandra (DSE) to be available')
+            time.sleep(10)
 
-    session = cluster.connect("killrvideo")
+    # Additional retry loop to check if dummy keyspace exists
+    while True:
+        logging.info('Checking for schema to be created...')
+        result = session.execute('SELECT keyspace_name FROM system_schema.keyspaces WHERE keyspace_name=\'kv_init_done\'')
+        if result.one(): # any result indicates keyspace has been created
+            break
+        time.sleep(10)
+
     dse.cqlengine.connection.set_session(session)
 
     # Initialize GRPC Server
@@ -90,18 +89,8 @@ def serve():
     VideoCatalogServiceServicer(grpc_server, VideoCatalogService(session=session))
 
     # Start GRPC Server
-    grpc_server.add_insecure_port('[::]:' + str(service_port))
+    grpc_server.add_insecure_port('[::]:' + service_port)
     grpc_server.start()
-
-    # Register Services with etcd
-    etcd_client.write('/killrvideo/services/CommentsService/killrvideo-python', service_address)
-    etcd_client.write('/killrvideo/services/RatingsService/killrvideo-python', service_address)
-    etcd_client.write('/killrvideo/services/SearchService/killrvideo-python', service_address)
-    etcd_client.write('/killrvideo/services/StatisticsService/killrvideo-python', service_address)
-    etcd_client.write('/killrvideo/services/SuggestedVideoService/killrvideo-python', service_address)
-    #etcd_client.write('/killrvideo/services/UploadsService/killrvideo-python', service_address)
-    etcd_client.write('/killrvideo/services/UserManagementService/killrvideo-python', service_address)
-    etcd_client.write('/killrvideo/services/VideoCatalogService/killrvideo-python', service_address)
 
     # Keep application alive
     try:

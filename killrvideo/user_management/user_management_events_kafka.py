@@ -1,4 +1,5 @@
 import logging
+import os
 from kafka import KafkaProducer
 from .user_management_events_pb2 import UserCreated
 from common.common_types_conversions import UUID_to_grpc, datetime_to_Timestamp
@@ -9,7 +10,7 @@ class UserManagementPublisher(object):
     """Provides methods that publish events associated with the User Management Service."""
 
     def __init__(self):
-        self.producer = KafkaProducer(bootstrap_servers='10.0.75.1:9092',
+        self.producer = KafkaProducer(bootstrap_servers=os.getenv('KILLRVIDEO_KAFKA_BOOTSTRAP_SERVERS', 'kafka'),
                                       client_id='killrvideo-python:UserManagementService')
 
 

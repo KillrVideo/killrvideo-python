@@ -1,3 +1,4 @@
+import os
 from kafka import KafkaProducer
 from .comments_events_pb2 import UserCommentedOnVideo
 from common.common_types_conversions import UUID_to_grpc, datetime_to_Timestamp, TimeUUID_to_grpc
@@ -8,7 +9,7 @@ class CommentsPublisher(object):
     """Provides methods that publish events associated with the Comments Service."""
 
     def __init__(self):
-        self.producer = KafkaProducer(bootstrap_servers='10.0.75.1:9092',
+        self.producer = KafkaProducer(bootstrap_servers=os.getenv('KILLRVIDEO_KAFKA_BOOTSTRAP_SERVERS', 'kafka'),
                                       client_id='killrvideo-python:CommentsService')
 
 

@@ -1,14 +1,12 @@
 version: '3'
 
 #
-# docker-compose.yaml
-#   Simple compose file for running the Python services in Docker along with other containers comprising the
-#   KillrVideo.
+# docker-compose-backend-external.yaml
+#   Simple compose file for running containers comprising the KillrVideo application and supporting infrastructure,
+#   minus the Python services, which may be run at the command line or in an IDE using the instructions in the README.
 #   For more complex configuration options including metrics, external volumes, OpsCenter,
 #   etc., see https://github.com/KillrVideo/killrvideo-docker-common
 #
-#   Note: the default configuration here uses the LATEST version of the killrvideo-python
-#   Docker image, which can be built using scripts/docker_build.sh.
 #
 
 services:
@@ -17,21 +15,10 @@ services:
     image: killrvideo/killrvideo-web:3.0.1
     ports:
       - "3000:3000" # Exposes port to be available externally
-    depends_on:
-      - backend # Needs Backend to be running
     environment:
       KILLRVIDEO_LOGGING_LEVEL: debug # More logging
-
-  # Service implementation - use docker-compose-backend-external.yaml if running services in IDE
-  backend: 
-    image: killrvideo/killrvideo-python
-    ports:
-      - "50101:50101" # Exposes port to be available.
-    depends_on:
-      - dse  # Needs DSE to be running
-      - kafka
-    environment:
-      KILLRVIDEO_LOGGING_LEVEL: debug # More logging
+    extra_hosts:
+      - backend:$KILLRVIDEO_BACKEND
 
   # Datastax Studio provides convenient web interface to work directly with DataStax Enterprise
   studio:  
@@ -68,10 +55,10 @@ services:
   # Adds comments and rates videos, upload new videos and so on.
   generator: 
     image: killrvideo/killrvideo-generator:3.0.1
-    depends_on:
-      - backend # Needs Backend to be running
     environment:
       KILLRVIDEO_LOGGING_LEVEL: debug # More logging
+    extra_hosts:
+      - backend:$KILLRVIDEO_BACKEND
 
   # Ensure consistency in Kafka World
   zookeeper:
@@ -86,7 +73,7 @@ services:
       - zookeeper
     environment:
       KAFKA_LISTENERS: PLAINTEXT://:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://$KILLRVIDEO_BACKEND:9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_CREATE_TOPICS: "topic-kv-videoCreation:1:1,topic-kv-userCreation:1:1,topic-kv-videoRating:1:1,topic-kv-commentCreation:1:1"
     ports:
