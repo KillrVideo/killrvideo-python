@@ -1,24 +1,23 @@
 dist: xenial # required for Python >= 3.7
 language: python
 python:
-- "3.7"
+  - "3.7"
 
 # Build the docker image
 script:
-- docker build -t ${TRAVIS_COMMIT} .
+  - docker build -t ${TRAVIS_COMMIT} .
 
 # If successful, see if we need to publish also
 after_success:
-- test -z $TRAVIS_TAG && travis_terminate 0
-- docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:${TRAVIS_TAG}
-- docker login -u $DOCKER_USER -p $DOCKER_PASS
-- docker push killrvideo/killrvideo-python:${TRAVIS_TAG}
-- [ $(git tag --sort=-v:refname | grep -E '^\d+.\d+.\d+$' | head -n1) == "$TRAVIS_TAG" ] && docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:latest; docker push killrvideo/killrvideo-python:latest
-
+  - test -z $TRAVIS_TAG && travis_terminate 0
+  - docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:${TRAVIS_TAG}
+  - docker login -u $DOCKER_USER -p $DOCKER_PASS
+  - docker push killrvideo/killrvideo-python:${TRAVIS_TAG}
+  - "[ $(git tag --sort=-v:refname | grep -E '^\\d+.\\d+.\\d+$' | head -n1) == \"$TRAVIS_TAG\" ] && docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:latest; docker push killrvideo/killrvideo-python:latest"
 # Sudo required for doing docker build
 sudo: required
 services:
-- docker
+  - docker
 
 env:
   global:
