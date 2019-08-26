@@ -1,27 +1,26 @@
-from dse.cqlengine import columns
-from dse.cqlengine.models import Model
 from dse.cqlengine.query import LWTException
+import logging
+from dse.cluster import Cluster
+
 from datetime import datetime
 import hashlib
 import validate_email
 from .user_management_events_kafka import UserManagementPublisher
 
-class UserModel(Model):
-    """Model class that maps to the user table"""
-    __table_name__ = 'users'
-    user_id = columns.UUID(db_field='userid', primary_key=True)
-    first_name = columns.Text(db_field='firstname')
-    last_name = columns.Text(db_field='lastname')
-    email = columns.Text()
-    created_date = columns.Date()
+class UserModel():
+    def __init__(self, user_id, first_name, last_name, email, created_date):
+        self.user_id = user_id
+        self.first_name = first_name
+        self.last_name = last_name
+        self.email = email
+        self.created_date = created_date
 
 
-class UserCredentialsModel(Model):
-    """Model class that maps to the user_credentials table"""
-    __table_name__ = 'user_credentials'
-    email = columns.Text(primary_key=True)
-    user_id = columns.UUID(db_field='userid')
-    password = columns.Text()
+class UserCredentialsModel():
+    def __init__(self, email, user_id, password):
+        self.email = email
+        self.user_id = user_id
+        self.password = password
 
 
 def trim_and_hash_password(password):
@@ -32,8 +31,9 @@ def trim_and_hash_password(password):
 
 class UserManagementService(object):
     """Provides methods that implement functionality of the UserManagement Service."""
+    def __init__(self, session):
+        self.session = session
 
-    def __init__(self):
         self.user_management_publisher = UserManagementPublisher()
 
     def create_user(self, user_id, first_name, last_name, email, password):
@@ -46,13 +46,16 @@ class UserManagementService(object):
 
         # insert into user_credentials table first so we can ensure uniqueness with LWT
         try:
-            UserCredentialsModel.if_not_exists().create(user_id=user_id, email=email, password=hashed_password)
+            self.session.execute('INSERT INTO user_credentials (email, password, userid) VALUES (%s, %s, %s) IF NOT EXISTS ',
+                                 email, hashed_password, user_id)
         except LWTException:
             # Exact string in this message is expected by integration test
             raise ValueError('Exception creating user because it already exists for ' + email)
 
-        # insert into users table
-        UserModel.create(user_id=user_id, first_name=first_name, last_name=last_name, email=email)
+
+        self.session.execute('INSERT INTO users (userid, firstname, lastname, email, created_date) VALUES (%s, %s, %s, %s, %s)',
+                             user_id, first_name, last_name, email, datetime.utcnow())
+
 
         # Publish UserCreated event
         self.user_management_publisher.publish_user_created_event(user_id=user_id, first_name=first_name,
@@ -65,8 +68,8 @@ class UserManagementService(object):
         if not email:
             raise ValueError('No email address provided')
 
-        # retrieve the credentials for provided email from user_credentials table
-        user_credentials = UserCredentialsModel.get(email=email)
+        row = self.session.execute('SELECT * FROM user_credentials where email=%s',(email,))
+        user_credentials = UserCredentialsModel(rows[0].email, rows[0].user_id, rows[0].password)
         if not user_credentials:
             raise ValueError('No such user')
 
@@ -81,8 +84,14 @@ class UserManagementService(object):
         if not user_ids:
             raise ValueError('No user IDs provided')
 
-        # see: https://datastax.github.io/python-driver/cqlengine/queryset.html#retrieving-objects-with-filters
-        # filter().all() returns a ModelQuerySet, we iterate over the query set to get the Model instances
+        rows = self.session.execute('SELECT * FROM users where user_ids=%s',(user_ids,))
+        counter = 0
+        for row in rows:
+            user_results[counter] = UserModel(row.user_id, row.first_name, row.last_name, row.email, row.created_date)
+            if not user_results[counter]:
+                raise ValueError('No such user')
+            ++counter
+
         user_results = UserModel.filter(user_id__in=list(user_ids)).all()
         users = list()
         for user in user_results:

@@ -86,7 +86,7 @@ def serve():
     StatisticsServiceServicer(grpc_server, StatisticsService())
     SuggestedVideosServiceServicer(grpc_server, SuggestedVideosService(session=session))
     #UploadsServiceServicer(grpc_server, UploadsService())
-    UserManagementServiceServicer(grpc_server, UserManagementService())
+    UserManagementServiceServicer(grpc_server, UserManagementService(session=session))
     VideoCatalogServiceServicer(grpc_server, VideoCatalogService(session=session))
 
     # Start GRPC Server
