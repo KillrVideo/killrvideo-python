@@ -26,6 +26,7 @@ Running Python services in Docker:
 * Run the Python services
     * In your IDE or shell, set the environment variables `KILLRVIDEO_DSE_CONTACT_POINTS` and `KILLRVIDEO_KAFKA_BOOTSTRAP_SERVERS` to point to localhost (`127.0.0.1`)
     * `python killrvideo/__init__.py`
+    * To stop the docker services, run `scripts/stop-docker-backend-external.sh`
 
 For more advanced Docker configuration options including metrics, volume storage and OpsCenter, see the [killrvideo-docker-common](https://github.com/KillrVideo/killrvideo-docker-common) repository.  
 
