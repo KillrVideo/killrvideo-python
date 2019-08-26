@@ -13,7 +13,7 @@ after_success:
 - docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:${TRAVIS_TAG}
 - docker login -u $DOCKER_USER -p $DOCKER_PASS
 - docker push killrvideo/killrvideo-python:${TRAVIS_TAG}
-- [ $(git tag --sort=-v:refname | grep -E '^\d+.\d+.\d+$' | head -n1) == $TRAVIS_TAG ] && { docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:latest; docker push killrvideo/killrvideo-python:latest } || echo 'Not latest image, skipping push...'
+- [ $(git tag --sort=-v:refname | grep -E '^\d+.\d+.\d+$' | head -n1) == "$TRAVIS_TAG" ] && docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:latest; docker push killrvideo/killrvideo-python:latest
 
 # Sudo required for doing docker build
 sudo: required
