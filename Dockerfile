@@ -32,6 +32,6 @@ WORKDIR /app
 
 ENV PYTHONPATH "${PYTHONPATH}:/${WORKDIR}"
 
-EXPOSE 8899
+EXPOSE 50101
  
 CMD ["python", "./__init__.py"]

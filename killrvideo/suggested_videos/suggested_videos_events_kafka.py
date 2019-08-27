@@ -1,4 +1,5 @@
 import logging
+import os
 import threading
 from kafka import KafkaConsumer
 from user_management.user_management_events_pb2 import UserCreated
@@ -9,9 +10,6 @@ from common.common_types_conversions import grpc_to_UUID, Timestamp_to_datetime
 USER_CREATED_TOPIC = 'topic-kv-userCreation'
 USER_RATED_VIDEO_TOPIC = 'topic-kv-videoRating'
 YOUTUBE_VIDEO_ADDED_TOPIC = 'topic-kv-videoCreation'
-
-BOOTSTRAP_SERVERS = '10.0.75.1:9092'
-
 
 class SuggestedVideoKafkaConsumer(threading.Thread):
     def __init__(self, suggested_videos_consumer):

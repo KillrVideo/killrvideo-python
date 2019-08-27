@@ -1,4 +1,5 @@
 import logging
+import os
 from kafka import KafkaProducer
 from .ratings_events_pb2 import UserRatedVideo
 from common.common_types_conversions import UUID_to_grpc, grpc_to_UUID, datetime_to_Timestamp, Timestamp_to_datetime
@@ -11,6 +12,7 @@ class RatingPublisher(object):
     def __init__(self):
         # self.producer = KafkaProducer(bootstrap_servers='10.0.75.1:9092',
         #                               client_id='killrvideo-python:RatingsService')
+
 
 
     def publish_user_rated_video_event(self, video_id, user_id, rating, timestamp):
