@@ -8,14 +8,14 @@ class CommentsPublisher(object):
     """Provides methods that publish events associated with the Comments Service."""
 
     def __init__(self):
-        self.producer = KafkaProducer(bootstrap_servers='10.0.75.1:9092',
-                                      client_id='killrvideo-python:CommentsService')
+        # self.producer = KafkaProducer(bootstrap_servers='10.0.75.1:9092',
+        #                               client_id='killrvideo-python:CommentsService')
 
 
     def publish_user_comment_added_event(self, video_id, user_id, comment_id):
-        
-        event = UserCommentedOnVideo(video_id=UUID_to_grpc(video_id),
-                                      user_id=UUID_to_grpc(user_id),
-                                      comment_id=TimeUUID_to_grpc(comment_id))
-
-        self.producer.send(USER_COMMENT_ADDED_TOPIC, event.SerializeToString())
+        #
+        # event = UserCommentedOnVideo(video_id=UUID_to_grpc(video_id),
+        #                               user_id=UUID_to_grpc(user_id),
+        #                               comment_id=TimeUUID_to_grpc(comment_id))
+        #
+        # self.producer.send(USER_COMMENT_ADDED_TOPIC, event.SerializeToString())
