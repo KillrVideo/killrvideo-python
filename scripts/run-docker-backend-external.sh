@@ -10,5 +10,5 @@
 export KILLRVIDEO_BACKEND=`ipconfig getifaddr en0`
 
 # the compose file swaps in the value of `KILLRVIDEO_BACKEND` in several places
-docker-compose -p killrvideo-python -f docker-compose-backend-external.yaml up -d
+docker-compose -p killrvideo-python -f ./scripts/docker-compose-backend-external.yaml up -d
  
