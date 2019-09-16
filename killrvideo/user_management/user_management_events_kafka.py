@@ -12,6 +12,7 @@ class UserManagementPublisher(object):
     def __init__(self):
         # self.producer = KafkaProducer(bootstrap_servers='10.0.75.1:9092',
         #                               client_id='killrvideo-python:UserManagementService')
+        pass
 
 
 
@@ -20,3 +21,4 @@ class UserManagementPublisher(object):
         #                           timestamp=datetime_to_Timestamp(timestamp))
         #
         # self.producer.send(USER_CREATED_TOPIC, event.SerializeToString())
+        pass

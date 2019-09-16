@@ -15,6 +15,7 @@ class SuggestedVideoKafkaConsumer(threading.Thread):
     def __init__(self, suggested_videos_consumer):
         # threading.Thread.__init__(self)
         # self.suggested_videos_consumer = suggested_videos_consumer
+        pass
 
     def run(self):
         # consumer = KafkaConsumer(bootstrap_servers=BOOTSTRAP_SERVERS,
@@ -34,6 +35,7 @@ class SuggestedVideoKafkaConsumer(threading.Thread):
         #             self.suggested_videos_consumer.process_youtube_video_added(event.value)
         #     except Exception as e:
         #         logging.debug("Error processing event: " + str(e))
+        pass
 
 
 class SuggestedVideosConsumer(object):
@@ -43,6 +45,7 @@ class SuggestedVideosConsumer(object):
         # self.suggested_videos_service = suggested_videos_service
         # self.consumer = SuggestedVideoKafkaConsumer(self)
         # self.consumer.start()
+        pass
 
     def process_user_created(self, value):
         # user_created = UserCreated()
@@ -54,6 +57,7 @@ class SuggestedVideosConsumer(object):
         #                                                   last_name=user_created.last_name,
         #                                                   email=user_created.email,
         #                                                   timestamp=Timestamp_to_datetime(user_created.timestamp))
+        pass
 
     def process_user_rated_video(self, value):
         # user_rated_video = UserRatedVideo()
@@ -64,6 +68,7 @@ class SuggestedVideosConsumer(object):
         #                                                       user_id=grpc_to_UUID(user_rated_video.user_id),
         #                                                       rating=user_rated_video.rating,
         #                                                       timestamp=Timestamp_to_datetime(user_rated_video.rating_timestamp))
+        pass
 
     def process_youtube_video_added(self, value):
         # video_added = YouTubeVideoAdded()
@@ -79,3 +84,4 @@ class SuggestedVideosConsumer(object):
         #                                                          tags=video_added.tags,
         #                                                          added_date=Timestamp_to_datetime(video_added.added_date),
         #                                                          timestamp=Timestamp_to_datetime(video_added.timestamp))
+        pass

@@ -12,6 +12,7 @@ class RatingPublisher(object):
     def __init__(self):
         # self.producer = KafkaProducer(bootstrap_servers='10.0.75.1:9092',
         #                               client_id='killrvideo-python:RatingsService')
+        pass
 
 
 
@@ -23,4 +24,5 @@ class RatingPublisher(object):
         # #logging.debug('(' + str(type(serialized_event)) + ') ' + str(serialized_event))
         #
         # self.producer.send(topic=USER_RATED_VIDEO_TOPIC, value=serialized_event)
+        pass
 
