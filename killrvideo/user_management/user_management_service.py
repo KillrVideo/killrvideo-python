@@ -47,21 +47,24 @@ class UserManagementService(object):
 
         # insert into user_credentials table first so we can ensure uniqueness with LWT
         try:
-            self.session.execute('INSERT INTO killrvideo.user_credentials (email, password, userid) VALUES (%s, %s, %s) IF NOT EXISTS ',
-                                 (email, hashed_password, user_id))
+            self.session.execute(
+                # YOUR CQL HERE
+            )
         except LWTException:
             # Exact string in this message is expected by integration test
             raise ValueError('Exception creating user because it already exists for ' + email)
 
-        self.session.execute('INSERT INTO killrvideo.users (userid, firstname, lastname, email, created_date) VALUES (%s, %s, %s, %s, %s)',
-                             (user_id, first_name, last_name, email, datetime.utcnow()))
+        self.session.execute(
+            # YOUR CQL HERE
+        )
 
     def verify_credentials(self, email, password):
         # validate email is not empty or null
         if not email:
             raise ValueError('No email address provided')
-
-        result = self.session.execute('SELECT * FROM killrvideo.user_credentials where email=%s',[email]).one()
+        result = self.session.execute(
+            # YOUR CQL HERE
+        ).one()
         user_credentials = UserCredentialsModel(result['email'], result['userid'], result['password'])
         if not user_credentials:
             raise ValueError('No such user')
@@ -78,7 +81,9 @@ class UserManagementService(object):
             raise ValueError('No user IDs provided')
         users = list()
         for user_id in user_ids:
-            result = self.session.execute('SELECT * FROM killrvideo.users where userid = %s',[user_id]).one()
+            result = self.session.execute().one(
+                # YOUR CQL HERE
+            )
             user = UserModel(result['userid'], result['firstname'], result['lastname'], result['email'], result['created_date'])
             users.append(user)
 
