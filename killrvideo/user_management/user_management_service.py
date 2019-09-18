@@ -37,6 +37,7 @@ class UserManagementService(object):
         self.user_management_publisher = UserManagementPublisher()
 
     def create_user(self, user_id, first_name, last_name, email, password):
+
         # validate inputs
         if not validate_email.validate_email(email):
             raise ValueError('Invalid email address')
@@ -46,30 +47,23 @@ class UserManagementService(object):
 
         # insert into user_credentials table first so we can ensure uniqueness with LWT
         try:
-            self.session.execute('INSERT INTO user_credentials (email, password, userid) VALUES (%s, %s, %s) IF NOT EXISTS ',
-                                 email, hashed_password, user_id)
+            self.session.execute('INSERT INTO killrvideo.user_credentials (email, password, userid) VALUES (%s, %s, %s) IF NOT EXISTS ',
+                                 (email, hashed_password, user_id))
         except LWTException:
             # Exact string in this message is expected by integration test
             raise ValueError('Exception creating user because it already exists for ' + email)
 
-
-        self.session.execute('INSERT INTO users (userid, firstname, lastname, email, created_date) VALUES (%s, %s, %s, %s, %s)',
-                             user_id, first_name, last_name, email, datetime.utcnow())
-
-
-        # Publish UserCreated event
-        self.user_management_publisher.publish_user_created_event(user_id=user_id, first_name=first_name,
-                                                                  last_name=last_name, email=email,
-                                                                  timestamp=datetime.utcnow())
-
+        self.session.execute('INSERT INTO killrvideo.users (userid, firstname, lastname, email, created_date) VALUES (%s, %s, %s, %s, %s)',
+                             (user_id, first_name, last_name, email, datetime.utcnow()))
 
     def verify_credentials(self, email, password):
         # validate email is not empty or null
         if not email:
             raise ValueError('No email address provided')
 
-        row = self.session.execute('SELECT * FROM user_credentials where email=%s',(email,))
-        user_credentials = UserCredentialsModel(rows[0].email, rows[0].user_id, rows[0].password)
+        result = self.session.execute('SELECT * FROM killrvideo.user_credentials where email=%s',[email]).one()
+        print(type(result))
+        user_credentials = UserCredentialsModel(result['email'], result['userid'], result['password'])
         if not user_credentials:
             raise ValueError('No such user')
 
@@ -83,17 +77,10 @@ class UserManagementService(object):
     def get_user_profile(self, user_ids):
         if not user_ids:
             raise ValueError('No user IDs provided')
-
-        rows = self.session.execute('SELECT * FROM users where user_ids=%s',(user_ids,))
-        counter = 0
-        for row in rows:
-            user_results[counter] = UserModel(row.user_id, row.first_name, row.last_name, row.email, row.created_date)
-            if not user_results[counter]:
-                raise ValueError('No such user')
-            ++counter
-
-        user_results = UserModel.filter(user_id__in=list(user_ids)).all()
         users = list()
-        for user in user_results:
+        for user_id in user_ids:
+            result = self.session.execute('SELECT * FROM killrvideo.users where userid = %s',[user_id]).one()
+            user = UserModel(result['userid'], result['firstname'], result['lastname'], result['email'], result['created_date'])
             users.append(user)
+
         return users
