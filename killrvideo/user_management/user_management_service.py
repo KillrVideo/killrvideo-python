@@ -62,7 +62,6 @@ class UserManagementService(object):
             raise ValueError('No email address provided')
 
         result = self.session.execute('SELECT * FROM killrvideo.user_credentials where email=%s',[email]).one()
-        print(type(result))
         user_credentials = UserCredentialsModel(result['email'], result['userid'], result['password'])
         if not user_credentials:
             raise ValueError('No such user')
