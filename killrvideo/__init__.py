@@ -58,9 +58,12 @@ def serve():
     session = None
     while not session:
         try:
-            session = Cluster(contact_points=dse_contact_points,
-                              execution_profiles={EXEC_PROFILE_DEFAULT: profile, EXEC_PROFILE_GRAPH_DEFAULT: graph_profile},
-                              auth_provider = auth_provider).connect("killrvideo")
+            session = Cluster(
+                cloud={
+                    'secure_connect_bundle': '/home/ubuntu/workspace/creds.zip'
+                },
+                auth_provider=PlainTextAuthProvider('KVUser', 'KVPassword')
+            ).connect()
         except (NoHostAvailable):
             logging.info('Waiting for Cassandra (DSE) to be available')
             time.sleep(10)
