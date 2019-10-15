@@ -68,7 +68,7 @@ def serve():
     # Additional retry loop to check if dummy keyspace exists
     while True:
         logging.info('Checking for schema to be created...')
-        result = session.execute('SELECT keyspace_name FROM system_schema.keyspaces WHERE keyspace_name=\'kv_init_done\'')
+        result = session.execute('select * from killrvideo.kv_init_done')
         if result.one(): # any result indicates keyspace has been created
             break
         time.sleep(10)
