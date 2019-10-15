@@ -63,7 +63,7 @@ def serve():
                     'secure_connect_bundle': '/home/ubuntu/workspace/creds.zip'
                 },
                 auth_provider=PlainTextAuthProvider('KVUser', 'KVPassword')
-            ).connect()
+            ).connect("killrvideo")
         except (NoHostAvailable):
             logging.info('Waiting for Cassandra (DSE) to be available')
             time.sleep(10)
@@ -71,7 +71,7 @@ def serve():
     # Additional retry loop to check if dummy keyspace exists
     while True:
         logging.info('Checking for schema to be created...')
-        result = session.execute('select * from killrvideo.kv_init_done')
+        result = session.execute('select * from killrvideo.kv_init_done;')
         if result.one(): # any result indicates keyspace has been created
             break
         time.sleep(10)
