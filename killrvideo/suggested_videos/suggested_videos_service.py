@@ -64,6 +64,7 @@ class SuggestedVideosService(object):
         #  find users that watched (rated) this video highly
         # for those users, grab N highly rated videos and assemble results
 
+        """
         traversal = self.graph.V().has('video', 'videoId', video_id).as_('^video') \
             .inE('rated').has('rating', gte(MIN_RATING)) \
             .sample(NUM_RATINGS_TO_SAMPLE).by('rating').outV() \
@@ -82,7 +83,9 @@ class SuggestedVideosService(object):
         results = traversal.toList()
         logging.debug('Traversal generated ' + str(len(results)) + ' results')
 
+        """
         videos = list()
+        """
         for result in results:
             logging.debug('Traversal Result: ' + str(result))
             videos.append(VideoPreview(video_id=result['video_id'],
@@ -90,6 +93,7 @@ class SuggestedVideosService(object):
                                        user_id=result['user_id'], name=result['name'],
                                        preview_image_location=result['preview_image_location']))
 
+        """
         return RelatedVideosResponse(video_id=video_id, videos=videos, paging_state=None)
 
 
@@ -117,6 +121,7 @@ class SuggestedVideosService(object):
         # Part 3: now that we have that big map of [video: score], let's order it
         # - then grab properties of the video and the user who uploaded each video using project()
 
+        """
         traversal = self.graph.V().has('user', 'userId', user_id).as_('^user') \
             .map(__.out('rated').dedup().fold()).as_('^watchedVideos') \
             .select('^user') \
@@ -141,7 +146,9 @@ class SuggestedVideosService(object):
         results = traversal.toList()
         logging.debug('Traversal generated ' + str(len(results)) + ' results')
 
+        """
         videos = list()
+        """
         for result in results:
             logging.debug('Traversal Result: ' + str(result))
             videos.append(VideoPreview(video_id=result['video_id'],
@@ -149,10 +156,12 @@ class SuggestedVideosService(object):
                                        user_id=result['user_id'], name=result['name'],
                                        preview_image_location=result['preview_image_location']))
 
+        """
         return SuggestedVideosResponse(user_id=user_id, videos=videos, paging_state=None)
 
 
     def handle_user_created(self, user_id, first_name, last_name, email, timestamp):
+        """
         logging.debug('SuggestedVideosService:handle_user_created, id is: ' + str(user_id) +
                       ', first name: ' + first_name +
                       ', last name: ' + last_name + ', email: ' + email +
@@ -160,10 +169,13 @@ class SuggestedVideosService(object):
 
         self.graph.addV('user').property('userId', user_id).property('email', email) \
             .property('added_date', timestamp).next()
+        """
+        pass
 
 
     def handle_youtube_video_added(self, video_id, user_id, name, description, location, preview_image_location,
                                    tags, added_date, timestamp):
+        """
         # make sure tags are unique (no duplicates)
         unique_tags = set(tags)
 
@@ -196,10 +208,12 @@ class SuggestedVideosService(object):
 
         # execute the traversal
         traversal.iterate()
+        """
+        pass
 
 
     def handle_user_rated_video(self, video_id, user_id, rating, timestamp):
-
+        """
         logging.debug('SuggestedVideosService:handle_user_rated_video, video id: ' + str(video_id) +
                       ', user ID: ' + str(user_id) +
                       ', rating: ' + str(rating) +
@@ -210,3 +224,5 @@ class SuggestedVideosService(object):
             .addE('rated').to(__.V().has('video', 'videoId', video_id)) \
             .property('rating', rating) \
             .iterate()
+        """
+        pass

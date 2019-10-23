@@ -32,8 +32,8 @@ class UserManagementServiceServicer(user_management_service_pb2_grpc.UserManagem
         logging.debug(request)
         user_id = grpc_to_UUID(request.user_id)
 
-        self.user_management_service.create_user(user_id=user_id,
-                                                 first_name=request.first_name,last_name=request.last_name,
+        self.user_management_service.create_user(userid=user_id,
+                                                 firstname=request.first_name,lastname=request.last_name,
                                                  email=request.email,password=request.password)
 
         return CreateUserResponse()

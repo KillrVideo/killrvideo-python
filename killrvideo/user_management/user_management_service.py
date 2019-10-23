@@ -1,4 +1,5 @@
 from dse.cqlengine.query import LWTException
+from datetime import datetime
 import logging
 from dse.cluster import Cluster
 
@@ -36,7 +37,8 @@ class UserManagementService(object):
 
         self.user_management_publisher = UserManagementPublisher()
 
-    def create_user(self, user_id, first_name, last_name, email, password):
+    """ Creates a new user account """
+    def create_user(self, userid, firstname, lastname, email, password):
 
         # validate inputs
         if not validate_email.validate_email(email):
@@ -48,22 +50,25 @@ class UserManagementService(object):
         # insert into user_credentials table first so we can ensure uniqueness with LWT
         try:
             self.session.execute(
-                # YOUR CQL HERE
+                "TODO: PLACE YOUR CQL HERE",
+                (email, hashed_password, userid)
             )
         except LWTException:
             # Exact string in this message is expected by integration test
             raise ValueError('Exception creating user because it already exists for ' + email)
 
         self.session.execute(
-            # YOUR CQL HERE
+            "TODO: PLACE YOUR CQL HERE",
+            (userid, firstname, lastname, email, datetime.now())
         )
 
+    """ Verifies the user credentials and returns the user ID if successful """
     def verify_credentials(self, email, password):
         # validate email is not empty or null
         if not email:
             raise ValueError('No email address provided')
         result = self.session.execute(
-            # YOUR CQL HERE
+            "TODO: PLACE YOUR CQL HERE",[email]
         ).one()
         user_credentials = UserCredentialsModel(result['email'], result['userid'], result['password'])
         if not user_credentials:
@@ -75,15 +80,16 @@ class UserManagementService(object):
             raise ValueError('Authentication error')
 
         return user_credentials.user_id
-
+    
+    """ Gets profiles for the users specified in the request """
     def get_user_profile(self, user_ids):
         if not user_ids:
             raise ValueError('No user IDs provided')
         users = list()
-        for user_id in user_ids:
-            result = self.session.execute().one(
-                # YOUR CQL HERE
-            )
+        for userid in user_ids:
+            result = self.session.execute(
+                "TODO: PLACE YOUR CQL HERE",[userid]
+            ).one()
             user = UserModel(result['userid'], result['firstname'], result['lastname'], result['email'], result['created_date'])
             users.append(user)
 
