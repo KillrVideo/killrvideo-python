@@ -1,0 +1,22 @@
+version: '3'
+services:
+  backend:
+    image: killrvideo-python-local
+    depends_on:
+      - dse
+  
+  dse: 
+    image: datastax/dse-server:6.7.4
+    command: [ -s -g ]
+    environment:
+      DS_LICENSE: accept
+    cap_add:
+      - IPC_LOCK
+    ulimits:
+      memlock: -1
+
+  dse-config: 
+    image: killrvideo/killrvideo-dse-config:3.0.0
+    depends_on:
+      - dse
+  
