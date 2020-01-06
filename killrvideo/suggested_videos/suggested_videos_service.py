@@ -1,7 +1,7 @@
 from .suggested_videos_events_kafka import SuggestedVideosConsumer
 from dse_graph import DseGraph
 from gremlin_python.process.graph_traversal import __
-from gremlin_python.process.traversal import gte, neq, within, Scope, Operator, Order, Column
+from gremlin_python.process.traversal import gte, neq, without, Scope, Operator, Order, Column
 import logging
 
 class VideoPreview():
@@ -37,7 +37,6 @@ class SuggestedVideosService(object):
     def __init__(self, session):
         self.session = session
         self.graph = DseGraph.traversal_source(session=self.session, graph_name='killrvideo_video_recommendations')
-        logging.debug('Graph traversal source: ' + str(self.graph) + ' verts' + str(self.graph.V()))
         self.suggested_videos_consumer = SuggestedVideosConsumer(self)
 
 
@@ -118,23 +117,18 @@ class SuggestedVideosService(object):
         # - then grab properties of the video and the user who uploaded each video using project()
 
         traversal = self.graph.V().has('user', 'userId', user_id).as_('^user') \
-            .map(__.out('rated').dedup().fold()).as_('^watchedVideos') \
-            .select('^user') \
-            .outE('rated').has('rating', gte(MIN_RATING)).inV() \
-            .inE('rated').has('rating', gte(MIN_RATING)) \
+            .outE('rated').sideEffect(__.inV().aggregate('^watchedVideos')) \
+            .has('rating', gte(MIN_RATING).inV().inE('rated').has('rating'), gte(MIN_RATING)) \
             .sample(NUM_RATINGS_TO_SAMPLE).by('rating').outV() \
             .where(neq('^user')) \
             .local(__.outE('rated').has('rating', gte(MIN_RATING)).limit(LOCAL_USER_RATINGS_TO_SAMPLE)) \
             .sack(Operator.assign).by('rating').inV() \
-            .filter(__.in_('uploaded').hasLabel('user')) \
+            .where(without('^watchedVideos')) \
             .group().by().by(__.sack().sum()) \
             .order(Scope.local).by(Column.values, Order.decr) \
             .limit(Scope.local, NUM_RECOMMENDATIONS).select(Column.keys).unfold() \
             .project('video_id', 'added_date', 'name', 'preview_image_location', 'user_id') \
             .by('videoId').by('added_date').by('name').by('preview_image_location').by(__.in_('uploaded').values('userId'))
-
-        # TODO: this step needs to be reinserted after .sack and before .filter
-        #.not_(__.where(within('^watchedVideos'))) \
 
         logging.debug('Traversal: ' + str(traversal.bytecode))
 
