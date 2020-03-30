@@ -25,7 +25,9 @@ after_success:
 - docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:${TRAVIS_TAG}
 - echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
 - docker push killrvideo/killrvideo-python:${TRAVIS_TAG}
-- "[ \"$(git tag --sort=-v:refname | grep -P \"^\\d+.\\d+.\\d+$\" | head -n1)\" == \"$TRAVIS_TAG\" ] &&  { docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:latest; docker push killrvideo/killrvideo-python:latest; }"
+- "[ \"$(git tag --sort=-v:refname | grep -P \"^\\d+.\\d+.\\d+$\" | head -n1)\" == \"$TRAVIS_TAG\" ] && { docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:latest; docker push killrvideo/killrvideo-python:latest; }"
+- "[ \"$(git tag --sort=-v:refname | grep -P \"^\\d+.\\d+.\\d+$\" | head -n1)\" == \"$TRAVIS_TAG\" ] && { docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:$(echo $TRAVIS_TAG | cut -d'.' -f 1); docker push killrvideo/killrvideo-python:$(echo $TRAVIS_TAG | cut -d'.' -f 1); }"
+- "[ \"$(git tag --sort=-v:refname | grep -P \"^\\d+.\\d+.\\d+$\" | head -n1)\" == \"$TRAVIS_TAG\" ] && { docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:$(echo $TRAVIS_TAG | cut -d'.' -f 1).$(echo $TRAVIS_TAG | cut -d'.' -f 2); docker push killrvideo/killrvideo-python:$(echo $TRAVIS_TAG | cut -d'.' -f 1).$(echo $TRAVIS_TAG | cut -d'.' -f 2); }"
 
 after_failure:
 - travis_fold start logs
