@@ -13,23 +13,23 @@ version: '3'
 
 services:
 
+  # Service implementation - use docker-compose-backend-external.yaml if running services in IDE
+  backend: 
+    build: .
+    ports:
+      - "50101:50101" # Exposes port to be available.
+    depends_on:
+      - dse  # Needs DSE to be running
+      - kafka
+    environment:
+      KILLRVIDEO_LOGGING_LEVEL: debug # More logging
+
   web: # Web Interface
     image: killrvideo/killrvideo-web:3.0.1
     ports:
       - "3000:3000" # Exposes port to be available externally
     depends_on:
       - backend # Needs Backend to be running
-    environment:
-      KILLRVIDEO_LOGGING_LEVEL: debug # More logging
-
-  # Service implementation - use docker-compose-backend-external.yaml if running services in IDE
-  backend: 
-    image: killrvideo/killrvideo-python
-    ports:
-      - "50101:50101" # Exposes port to be available.
-    depends_on:
-      - dse  # Needs DSE to be running
-      - kafka
     environment:
       KILLRVIDEO_LOGGING_LEVEL: debug # More logging
 

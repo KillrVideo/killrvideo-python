@@ -1,21 +1,38 @@
 dist: xenial # required for Python >= 3.7
 language: generic
-
-# Build the docker image
-script:
-  - docker build -t ${TRAVIS_COMMIT} .
-
-# If successful, see if we need to publish also
-after_success:
-  - test -z $TRAVIS_TAG && travis_terminate 0
-  - docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:${TRAVIS_TAG}
-  - docker login -u $DOCKER_USER -p $DOCKER_PASS
-  - docker push killrvideo/killrvideo-python:${TRAVIS_TAG}
-  - "[ \"$(git tag --sort=-v:refname | grep -P \"^\\d+.\\d+.\\d+$\" | head -n1)\" == \"$TRAVIS_TAG\" ] &&  { docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:latest; docker push killrvideo/killrvideo-python:latest; }"
-# Sudo required for doing docker build
 sudo: required
 services:
   - docker
+
+# Build the docker image
+script:
+- travis_fold start docker_build
+- docker build -t ${TRAVIS_COMMIT} -t killrvideo-python-local .
+- travis_fold end docker_build
+- travis_fold start docker_dependencies_up
+- docker-compose -f docker-compose.ci.yml up -d
+- sleep 300
+- docker-compose -f docker-compose.ci.yml logs dse-config 
+- travis_fold end docker_dependencies_up
+- travis_fold start test
+- docker run --network killrvideo-python_default killrvideo/killrvideo-integration-tests
+- travis_fold end test
+
+# If successful, see if we need to publish also
+after_success:
+- "[ \"$TRAVIS_EVENT_TYPE\" = \"cron\" ] && { echo \"Ignore nightly builds\"; travis_terminate 0; }"
+- test -z $TRAVIS_TAG && { echo "Ignore non-tagged builds"; travis_terminate 0; }
+- docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:${TRAVIS_TAG}
+- echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+- docker push killrvideo/killrvideo-python:${TRAVIS_TAG}
+- "[ \"$(git tag --sort=-v:refname | grep -P \"^\\d+.\\d+.\\d+$\" | head -n1)\" == \"$TRAVIS_TAG\" ] && { docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:latest; docker push killrvideo/killrvideo-python:latest; }"
+- "[ \"$(git tag --sort=-v:refname | grep -P \"^\\d+.\\d+.\\d+$\" | head -n1)\" == \"$TRAVIS_TAG\" ] && { docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:$(echo $TRAVIS_TAG | cut -d'.' -f 1); docker push killrvideo/killrvideo-python:$(echo $TRAVIS_TAG | cut -d'.' -f 1); }"
+- "[ \"$(git tag --sort=-v:refname | grep -P \"^\\d+.\\d+.\\d+$\" | head -n1)\" == \"$TRAVIS_TAG\" ] && { docker tag ${TRAVIS_COMMIT} killrvideo/killrvideo-python:$(echo $TRAVIS_TAG | cut -d'.' -f 1).$(echo $TRAVIS_TAG | cut -d'.' -f 2); docker push killrvideo/killrvideo-python:$(echo $TRAVIS_TAG | cut -d'.' -f 1).$(echo $TRAVIS_TAG | cut -d'.' -f 2); }"
+
+after_failure:
+- travis_fold start logs
+- docker-compose -f docker-compose.ci.yml logs dse-config backend
+- travis_fold end logs
 
 env:
   global:
@@ -23,3 +40,8 @@ env:
   - secure: "N7FzHIc8S/HyMOmEe9AGlMDDpvPG4+fQMX4J2Ws60PJno/g6h5Gifk0D7DS8zAgOWw7y1U+r8WXefRNGXj1WCFmTrchJhbNoURvqZ/yhrBWoHjEW3f4hxPw0KowAqHf6ZBrhGhoDTPJ+rz4YAnbVjMu10S+1/55EjkrlSyDQ9EwHgTjo63k8hz1dRjMpGzxp4i9XRUc2qQZchFCT+H8c5RQqlQjG4SOhKfp+igVhCWO86U0PoJEMR7y6nYCpSVLdnX2W9oUyQI9VxCh35bnxRVgGCX71eqoyqxS3AQ0LLqY8Yy4PiPzkRCSGFX9qtbgrLd+t5osZsdFyX3YfzmBr3dVCmQwkoHcOM2L3HaKtfPCsni92ukEoVBpU39ajZl8qpCt5QcRn7CpqLQmNeh9xfxlvoyfeR/DTlqKpFy/l6kXgFjrIdssXA5qSiAV873nW4vZerBGkwmWnsvojYA4zHMaT3fvFaFCfT9G2haLGyPF2ZYVpgl40Ficu1w7MrED8Zenou9lOvwDaG+g6vzGTBXwpie7yxPjSrVZi4OK7io574esG3nUwHcqDzEOar1FeBgDbo1I60Dw4C3uwJuM0fbBZo1uZ122DEnwjkzuojJl4r3V+OzFJEF9SgtZTJjZ84yYDXbJ+BjANf72d75c3hwP9Y3ppFunmeKCTcb4aMVs="
   # DOCKER_PASS
   - secure: "F8sNKMia3lYxc7X+vn7448CxX3z0Df06RJPBChM7oAREP2fxvOEzgipgMbHPx4POcdSr60aDSJfDfXpTPRylFkkNK8d733HQdvsLA1lyVoHr6pKRjU8QNz4AMMIxHNhunMTQ5XfJEn9Q+a5qmcsho9HOCA4rfhT/thKIC9QlX/qNme4v27n0vjvqh7cUHU2gV5ykZHf324WBRrzHgYyEe0ieNJ6Tvmxf+Kzm3JB6X20uqst48tS/pPDAkdQPnlu4kWprFwRfKboSjLQjgnnHY+zZLvgvP7kyfO817M5n7iH5WAD1jK4o1stb0tSM/1u4SwssxIyLOKJeclCfY9XkG3DjtNuU+43MUKsI8Q/39fzqW39nxYUCcM4kbW5rWZUCz9PfCs3MOd4xhgX7+mf9xT66HclsJcdbqyrty41rSB0/x8T2LtzoW/Q6UD2GNHimkRu2cTDI2aV1HxbZjqGlFxK5x77CPQAuFxtbnaUH6pSoi3fiYyJiivLLTGzeisA2qpjeSMS2+q3KZIpcqaDIMV4slvfng7gurm2TvtlEtwG1ITJ01dokcXNy+vcw/3go606Aemr/bK2Aot00X0/HDQaX1/v0rJVWXW/c3Gcso6Jzmi1C9vp8gTOr5closfqZFyDJFC1Wuv+vdAzW4MMuwAuc4DnoiwQ6Gm8LamV9oy8="
+
+notifications:
+  slack:
+    rooms:
+      secure: Eh/HI7+7KAUlzFpl9ViMUpExt4YXXWa5rEcwW3h/zIAo/UVghstuoCnk/CWbY/4SyrBeFO7iGcAc396GrBHbkJA25Iz+z3M7VYI/v22di1P8DeWguLNxbe1/wwCAbneYlxLbpPmkOKuFVho5NWDF1QgGszWONRM6DyiFiPlMF84nUcZEHP9exRELGqY64Cg3gfaKMXBn+QSZ5dzNH5cgVrWsGmPSeVBSTWZnZUYHWFKTbgnkY0bs1aHQefRAvl2CCZY/eFPJtcM9oIyIOiuX0NVz7h971tFJdJ9zpTesmaSVOjhCT00mUEJnPPI+zFJxLyIiXHjwROZXzCZL3J21DuWAb3+3ndVe6f47ao/4VNR/Q1TNJGIw5ewkA7RHHW9fegF27OzF+ddfd88ExFvBh1PvJXlAO3c050/2dIqDw7ovhIZWHFchUjSaoV6o5mkgv8/rEu76o3cpdAa78kgZ2tqzDQSquIY55eyHY1vDRusLYii5QZkXzblN9Hm/VvWuM//X99XtoFfnloeLcARWu6ze0fnsBeexK6iQMuUqseLZTjF3tnFqVe2cArA7Swwkh77fRWT3jm35FX1SHaT/kecsMiPY/E7sBfFGHjHVqSfEwMYXhJ6O3aur0UssB+UpuzWu+yBCkf7TienwzimXMrvOGnE++dSOxx6mXRaJBhI=
