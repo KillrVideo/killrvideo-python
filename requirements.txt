@@ -13,5 +13,5 @@ six==1.12.0
 sortedcontainers==2.1.0
 time-uuid==0.2.0
 tornado==4.5.3
-urllib3==1.25.3
+urllib3==1.25.8
 validate-email==1.3
