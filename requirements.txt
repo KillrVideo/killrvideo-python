@@ -8,7 +8,7 @@ gremlinpython==3.3.4
 grpcio==1.21.1
 kafka-python==1.4.6
 nltk==3.4.5
-protobuf==3.8.0
+protobuf==3.18.3
 six==1.12.0
 sortedcontainers==2.1.0
 time-uuid==0.2.0
