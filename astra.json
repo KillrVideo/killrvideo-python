@@ -1,0 +1,13 @@
+{
+    "name": "Killrvideo Python",
+    "summary": "Clone of youtube using DSE and python drivers",
+    "heroimage": "https://yt3.googleusercontent.com/ytc/AMLnZu99z7O76h-EBAOloogUjeaXsi0HN-2YaiixWxAjyw=s176-c-k-c0x00ffffff-no-rj-mo",
+    "githubUrl": "https://github.com/KillrVideo/killrvideo-python",
+    "usecases": "Digital Library",
+    "owner": "no maintenance",
+    "apis": [],
+    "tags": [
+        "python",
+        "grpc api"
+    ]
+}
